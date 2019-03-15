@@ -67,11 +67,8 @@ class _ChatBodyState extends State<ChatBody> {
             stream: _uiBuildStream,
             builder: (context, messages) {
               if (messages.data != null && messages.data.isNotEmpty) {
-
-                Timer(Duration(milliseconds: 100), () =>
-                    _listViewController.jumpTo(_listViewController
-                        .position.maxScrollExtent));
                 return ListView.builder(
+                  reverse: true,
                   controller: _listViewController,
                   shrinkWrap: true,
                   itemCount: messages.data.length,
@@ -89,6 +86,11 @@ class _ChatBodyState extends State<ChatBody> {
           children: <Widget>[
             Flexible(
               child: TextFormField(
+                autofocus: true,
+                keyboardType: TextInputType.multiline,
+                textInputAction: TextInputAction.newline,
+                autocorrect: true,
+                textCapitalization: TextCapitalization.sentences,
                 controller: _inputController,
                 decoration: InputDecoration(
                   hintText: "Enter u message here"

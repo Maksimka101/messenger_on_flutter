@@ -43,7 +43,7 @@ class ChatScreenBloc {
 
   _listenForMessages() =>
       FirestoreRepository.getMessages(chatName).listen((messages) {
-      _messagesStream.sink.add(_sortMessagesById(messages));
+      _messagesStream.sink.add(_sortMessagesById(messages).reversed.toList());
       if (messages != null) {
         for (Message i in messages) {
           int id = i.id;

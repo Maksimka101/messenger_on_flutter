@@ -42,7 +42,7 @@ class MessageItem extends StatelessWidget {
         mainAxisAlignment:
             isFromUser ? MainAxisAlignment.end : MainAxisAlignment.start,
         children: [
-          Container(
+          Flexible(
             child: Card(
               color: Colors.blue,
               shape: RoundedRectangleBorder(
