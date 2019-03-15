@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "1021503704800",
+    "firebase_url": "https://messenger-7cf7c.firebaseio.com",
+    "project_id": "messenger-7cf7c",
+    "storage_bucket": "messenger-7cf7c.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1021503704800:android:05dec84f98334742",
+        "android_client_info": {
+          "package_name": "com.maksimka101.messenger_for_nou"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1021503704800-kble1dp4otcboji734lu0ii04e6ge32p.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.maksimka101.messenger_for_nou",
+            "certificate_hash": "d96cf332282e1ce58b257f1806068d0ab618c603"
+          }
+        },
+        {
+          "client_id": "1021503704800-o0819o3geood5djgb95jke4lia2bnohf.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCC3SKzF_JPXKIE3l4BN_S0ng10R_gGlY4"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1021503704800-o0819o3geood5djgb95jke4lia2bnohf.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
