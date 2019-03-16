@@ -90,6 +90,7 @@ class _ChatBodyState extends State<ChatBody> {
                 keyboardType: TextInputType.multiline,
                 textInputAction: TextInputAction.newline,
                 autocorrect: true,
+                maxLines: null,
                 textCapitalization: TextCapitalization.sentences,
                 controller: _inputController,
                 decoration: InputDecoration(
@@ -101,7 +102,7 @@ class _ChatBodyState extends State<ChatBody> {
                 icon: Icon(Icons.send),
                 onPressed: () {
                   if (_inputController.text != "") {
-                    _inputStream.add(_inputController.text);
+                    _inputStream.add(_inputController.text.trim());
                     _inputController.clear();
                   }
                 },
