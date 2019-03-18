@@ -7,10 +7,14 @@ import 'package:messenger_for_nou/ui/message_item.dart';
 
 // TODO
 class ChatUi extends StatelessWidget {
-  ChatUi({@required this.companionName, @required this.chatId});
+  ChatUi(
+      {@required this.companionName,
+      @required this.chatId,
+      @required this.messagesByDate});
 
   final String companionName;
   final String chatId;
+  final List<String> messagesByDate;
 
   @override
   Widget build(BuildContext context) {
@@ -29,13 +33,21 @@ class ChatUi extends StatelessWidget {
           ],
         ),
       ),
-      body: ChatBody(companionName: companionName, chatName: chatId,),
+      body: ChatBody(
+        companionName: companionName,
+        chatName: chatId,
+        messagesByDate: messagesByDate,
+      ),
     );
   }
 }
 
 class ChatBody extends StatefulWidget {
-  ChatBody({@required this.companionName, @required this.chatName});
+  ChatBody(
+      {@required this.companionName,
+      @required this.chatName,
+      @required this.messagesByDate});
+  final List<String> messagesByDate;
   final String companionName;
   final String chatName;
   @override
@@ -43,7 +55,6 @@ class ChatBody extends StatefulWidget {
 }
 
 class _ChatBodyState extends State<ChatBody> {
-
   ChatScreenBloc _firestore;
   Stream<List<Message>> _uiBuildStream;
   StreamSink<String> _inputStream;
@@ -52,63 +63,73 @@ class _ChatBodyState extends State<ChatBody> {
 
   @override
   void initState() {
-    _firestore = ChatScreenBloc(chatName: widget.chatName, friendName: widget.companionName);
+    _firestore = ChatScreenBloc(
+        messagesByDate: widget.messagesByDate,
+        chatName: widget.chatName, friendName: widget.companionName);
     _uiBuildStream = _firestore.getStreamForUi();
     _inputStream = _firestore.getInputStream();
     super.initState();
   }
 
+  Widget _inputMessageField() {
+    return Row(
+      children: <Widget>[
+        Flexible(
+          child: TextFormField(
+            autofocus: true,
+            keyboardType: TextInputType.multiline,
+            textInputAction: TextInputAction.newline,
+            autocorrect: true,
+            maxLines: null,
+            textCapitalization: TextCapitalization.sentences,
+            controller: _inputController,
+            decoration: InputDecoration(hintText: "Enter u message here"),
+          ),
+        ),
+        IconButton(
+          icon: Icon(Icons.send),
+          onPressed: () {
+            if (_inputController.text != "") {
+              _inputStream.add(_inputController.text.trim());
+              _inputController.clear();
+            }
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _messagesList() => Expanded(
+    child: StreamBuilder<List<Message>>(
+      stream: _uiBuildStream,
+      builder: (context, messages) {
+        if (messages.data != null && messages.data.isNotEmpty) {
+          if (messages.data.length < 400)
+            _firestore.loadMoreMessages();
+          return ListView.builder(
+            reverse: true,
+            controller: _listViewController,
+            shrinkWrap: true,
+            itemCount: messages.data.length,
+            itemBuilder: (context, id) {
+              return MessageItem.fromMessage(messages.data[id]);
+            },
+          );
+        } else {
+          return SpinKitRing(
+            color: Colors.blue,
+          );
+        }
+      },
+    ),
+  );
+
   @override
   Widget build(BuildContext context) {
     return Column(
       children: <Widget>[
-        Expanded(
-          child: StreamBuilder<List<Message>>(
-            stream: _uiBuildStream,
-            builder: (context, messages) {
-              if (messages.data != null && messages.data.isNotEmpty) {
-                return ListView.builder(
-                  reverse: true,
-                  controller: _listViewController,
-                  shrinkWrap: true,
-                  itemCount: messages.data.length,
-                  itemBuilder: (context, id) {
-                    return MessageItem.fromMessage(messages.data[id]);
-                  },
-                );
-              } else {
-                return SpinKitRing(color: Colors.blue,);
-              }
-            },
-          ),
-        ),
-        Row(
-          children: <Widget>[
-            Flexible(
-              child: TextFormField(
-                autofocus: true,
-                keyboardType: TextInputType.multiline,
-                textInputAction: TextInputAction.newline,
-                autocorrect: true,
-                maxLines: null,
-                textCapitalization: TextCapitalization.sentences,
-                controller: _inputController,
-                decoration: InputDecoration(
-                  hintText: "Enter u message here"
-                ),
-              ),
-            ),
-            IconButton(
-                icon: Icon(Icons.send),
-                onPressed: () {
-                  if (_inputController.text != "") {
-                    _inputStream.add(_inputController.text.trim());
-                    _inputController.clear();
-                  }
-                },
-            ),
-          ],
-        ),
+        _messagesList(),
+        _inputMessageField(),
       ],
     );
   }
