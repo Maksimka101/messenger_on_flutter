@@ -23,7 +23,7 @@ class ChatUi extends StatelessWidget {
         title: Row(
           children: <Widget>[
             CircleAvatar(
-              backgroundColor: Colors.blueGrey,
+              backgroundColor: Colors.white,
               child: Text(companionName[0]),
             ),
             Padding(
@@ -75,19 +75,22 @@ class _ChatBodyState extends State<ChatBody> {
     return Row(
       children: <Widget>[
         Flexible(
-          child: TextFormField(
-            autofocus: true,
-            keyboardType: TextInputType.multiline,
-            textInputAction: TextInputAction.newline,
-            autocorrect: true,
-            maxLines: null,
-            textCapitalization: TextCapitalization.sentences,
-            controller: _inputController,
-            decoration: InputDecoration(hintText: "Enter u message here"),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4,),
+            child: TextFormField(
+              autofocus: true,
+              keyboardType: TextInputType.multiline,
+              textInputAction: TextInputAction.newline,
+              autocorrect: true,
+              maxLines: null,
+              textCapitalization: TextCapitalization.sentences,
+              controller: _inputController,
+              decoration: InputDecoration.collapsed(hintText: "Message"),
+            ),
           ),
         ),
         IconButton(
-          icon: Icon(Icons.send),
+          icon: Icon(Icons.send, color: Colors.deepOrange,),
           onPressed: () {
             if (_inputController.text != "") {
               _inputStream.add(_inputController.text.trim());

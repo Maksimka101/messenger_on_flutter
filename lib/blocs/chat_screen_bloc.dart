@@ -2,6 +2,7 @@ import 'dart:core';
 import 'package:messenger_for_nou/models/message_model.dart';
 import 'package:messenger_for_nou/models/user_model.dart';
 import 'package:messenger_for_nou/resources/firestore_repository.dart';
+import 'package:messenger_for_nou/utils/sorting.dart';
 import 'package:rxdart/rxdart.dart';
 import 'dart:async';
 
@@ -47,7 +48,7 @@ class ChatScreenBloc {
           .listen((messages) {
         if (messages.isNotEmpty)
           _previousMessages =
-              _sortMessagesById(messages + _previousMessages).reversed.toList();
+              sortMessagesById(messages + _previousMessages);
       });
     }
   }
@@ -57,7 +58,7 @@ class ChatScreenBloc {
     if (date != _currentDate)
       FirestoreRepository.getMessages(chatName, date).listen((messages) {
         if (messages.isNotEmpty)
-          _previousMessages = _sortMessagesById(messages).reversed.toList();
+          _previousMessages = sortMessagesById(messages);
       });
   }
 
@@ -79,7 +80,7 @@ class ChatScreenBloc {
       FirestoreRepository.getMessages(chatName, _currentDate)
           .listen((messages) {
         _messagesStream.sink.add(
-            _previousMessages + _sortMessagesById(messages).reversed.toList());
+            _previousMessages + sortMessagesById(messages));
         if (messages != null) {
           for (Message i in messages) {
             int id = i.id;
@@ -92,18 +93,5 @@ class ChatScreenBloc {
   dispose() {
     _messagesStream.close();
     _inputStream.close();
-  }
-
-  List<Message> _sortMessagesById(List<Message> messages) {
-    for (int i = 0; i < messages.length; i++) {
-      for (int j = 0; j < messages.length - i - 1; j++) {
-        if (messages[j].id > messages[j + 1].id) {
-          final tmp = messages[j];
-          messages[j] = messages[j + 1];
-          messages[j + 1] = tmp;
-        }
-      }
-    }
-    return messages;
   }
 }

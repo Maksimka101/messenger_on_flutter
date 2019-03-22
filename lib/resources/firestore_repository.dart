@@ -43,9 +43,10 @@ class FirestoreRepository {
           .snapshots()
           .map((snapshot) {
         final list = List<Message>();
-        snapshot.data.forEach((key, value) {
-          list.add(Message.fromMap(key, value));
-        });
+        if (snapshot.data != null)
+          snapshot.data.forEach((key, value) {
+            list.add(Message.fromMap(key, value));
+          });
         return list;
       });
 
