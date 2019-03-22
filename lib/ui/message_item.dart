@@ -44,6 +44,10 @@ class MessageItem extends StatelessWidget {
         children: [
           Flexible(
             child: Card(
+              margin: isFromUser ? EdgeInsets.only(left: 50, right: 5,
+                  bottom: 4, top: 3) :
+              EdgeInsets.only(left: 5, right: 50,
+                  bottom: 4, top: 3),
               color: Colors.blue,
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.only(
@@ -55,7 +59,8 @@ class MessageItem extends StatelessWidget {
               child: Padding(
                 padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
+                  crossAxisAlignment: isFromUser ? CrossAxisAlignment.end :
+                    CrossAxisAlignment.start,
                   children: <Widget>[
                     Container(
                       child: Text(
@@ -64,6 +69,7 @@ class MessageItem extends StatelessWidget {
                       ),
                     ),
                     Container(
+                      padding: EdgeInsets.only(top: 5),
                       child: Text(
                         sendTime,
                         style: TextStyle(fontSize: 11),

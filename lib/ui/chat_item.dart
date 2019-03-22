@@ -1,16 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:messenger_for_nou/ui/message_ui.dart';
+import 'package:messenger_for_nou/models/chat_item_model.dart';
 
 class ChatUnit extends StatelessWidget {
 
   ChatUnit({
-    @required this.chatName,
-    @required this.chatId,
-    @required this.companionName,
+    @required this.chatItem
   });
-  final String chatId;
-  final String chatName;
-  final String companionName;
+  final ChatItem chatItem;
 
   @override
   Widget build(BuildContext context) {
@@ -24,14 +21,14 @@ class ChatUnit extends StatelessWidget {
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 5, vertical: 5),
               child: CircleAvatar(
-                child: Text(chatName[0]),
+                child: Text(chatItem.chatName[0]),
                 backgroundColor: Colors.blueGrey,
               ),
             ),
             Column(
               mainAxisAlignment: MainAxisAlignment.end,
               children: <Widget>[
-                Center(child: Text(chatName)),
+                Center(child: Text(chatItem.chatName)),
                 Divider(),
               ],
             ),
@@ -39,8 +36,8 @@ class ChatUnit extends StatelessWidget {
         ),
       ),
       onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) =>
-        ChatUi(companionName: companionName, chatId: chatId,)
+        ChatUi(companionName: chatItem.senderName, chatId: chatItem.chatId, messagesByDate: chatItem.chatsByDate,)
       )),
     );
   }
-}
+ }

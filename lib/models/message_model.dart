@@ -13,9 +13,11 @@ class Message {
     this.id,
     this.senderId,
     this.senderName,
+    this.isFirst,
   });
 
   final int id;
+  final bool isFirst;
   final String senderId;
   final String senderName;
   final String messageText;
