@@ -75,7 +75,6 @@ class _ChatBodyState extends State<ChatBody> {
     return Row(
       children: <Widget>[
         Flexible(
-<<<<<<< HEAD
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4,),
             child: TextFormField(
@@ -92,21 +91,6 @@ class _ChatBodyState extends State<ChatBody> {
         ),
         IconButton(
           icon: Icon(Icons.send, color: Colors.deepOrange,),
-=======
-          child: TextFormField(
-            autofocus: true,
-            keyboardType: TextInputType.multiline,
-            textInputAction: TextInputAction.newline,
-            autocorrect: true,
-            maxLines: null,
-            textCapitalization: TextCapitalization.sentences,
-            controller: _inputController,
-            decoration: InputDecoration(hintText: "Enter u message here"),
-          ),
-        ),
-        IconButton(
-          icon: Icon(Icons.send),
->>>>>>> 35e72f0ba7a8818c3ce0d616c6375cd4ad525f59
           onPressed: () {
             if (_inputController.text != "") {
               _inputStream.add(_inputController.text.trim());

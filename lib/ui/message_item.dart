@@ -48,11 +48,7 @@ class MessageItem extends StatelessWidget {
                   bottom: 4, top: 3) :
               EdgeInsets.only(left: 5, right: 50,
                   bottom: 4, top: 3),
-<<<<<<< HEAD
               color: isFromUser ? Colors.deepOrange : Colors.deepOrangeAccent,
-=======
-              color: Colors.blue,
->>>>>>> 35e72f0ba7a8818c3ce0d616c6375cd4ad525f59
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.only(
                 topLeft: Radius.circular(borderRadius[0]),
