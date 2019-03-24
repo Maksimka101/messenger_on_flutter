@@ -8,9 +8,7 @@ class ChatItemBloc {
   ChatItemBloc({
     this.chatId,
     this.date,
-  }) {
-    print(chatId+" "+date);
-  }
+  });
 
   final String chatId, date;
 

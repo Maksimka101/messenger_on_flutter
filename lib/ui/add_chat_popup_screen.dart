@@ -57,10 +57,11 @@ class _AddChatScreenState extends State<AddChatScreen> {
         },
       ),
       actions: <Widget>[
-        FlatButton(
+        RaisedButton(
           onPressed: () =>
               _userInput.add(_inputController.text.replaceAll(".", "")),
           child: Text("Start chat"),
+          color: Colors.black,
         ),
       ],
     );

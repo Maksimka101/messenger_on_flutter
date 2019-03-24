@@ -57,7 +57,7 @@ class MessageItem extends StatelessWidget {
                 topRight: Radius.circular(borderRadius[3]),
               )),
               child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                padding: EdgeInsets.symmetric(horizontal: 9, vertical: 6),
                 child: Column(
                   crossAxisAlignment: isFromUser ? CrossAxisAlignment.end :
                     CrossAxisAlignment.start,

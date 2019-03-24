@@ -50,7 +50,7 @@ class FirestoreRepository {
         return list;
       });
 
-  sendMessage(
+  static sendMessage(
       {String chatName,
       String senderId,
       String data,

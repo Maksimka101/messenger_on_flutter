@@ -6,7 +6,6 @@ class User {
       userId = userIdentity;
     if (userName != null)
       name = userName;
-    print("$name, $userId");
   }
 
   // TODO

@@ -43,7 +43,6 @@ class _ChatsListState extends State<ChatsList> {
           return ListView.builder(
             itemCount: data.data.length,
             itemBuilder: (context, id) {
-              print(data.data[id].chatsByDate);
               return Column(
                 children: <Widget>[
                   ChatUnit(chatItem: data.data[id],),

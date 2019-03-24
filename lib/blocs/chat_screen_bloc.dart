@@ -42,8 +42,10 @@ class ChatScreenBloc {
   }
 
   loadMoreMessages() {
-    if (_lastLoadDateIndex > 0) {
-      _lastLoadDateIndex--;
+    if (_lastLoadDateIndex >= 0) {
+      if (messagesByDate[_lastLoadDateIndex] ==_currentDate)
+        _lastLoadDateIndex--;
+      print(messagesByDate[_lastLoadDateIndex]);
       FirestoreRepository.getMessages(
               chatName, messagesByDate[_lastLoadDateIndex])
           .listen((messages) {
@@ -51,11 +53,12 @@ class ChatScreenBloc {
           _previousMessages = sortMessagesById(messages) + _previousMessages;
           _messagesStream.sink.add(_newMessages + _previousMessages);
       });
+      _lastLoadDateIndex--;
     }
   }
 
   _listenForInput() => _inputStream.stream.listen((String messageText) {
-        FirestoreRepository().sendMessage(
+        FirestoreRepository.sendMessage(
           createChatForNewDay: _currentDate != messagesByDate.last,
           chatName: chatName,
           data: messageText,
