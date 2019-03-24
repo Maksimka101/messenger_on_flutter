@@ -6,8 +6,8 @@ import 'package:messenger_for_nou/models/message_model.dart';
 import 'package:messenger_for_nou/ui/message_item.dart';
 
 // TODO
-class ChatUi extends StatelessWidget {
-  ChatUi(
+class MessagesScreen extends StatelessWidget {
+  MessagesScreen(
       {@required this.companionName,
       @required this.chatId,
       @required this.messagesByDate});
@@ -23,12 +23,22 @@ class ChatUi extends StatelessWidget {
         title: Row(
           children: <Widget>[
             CircleAvatar(
-              backgroundColor: Colors.white,
-              child: Text(companionName[0]),
+              radius: 25,
+              backgroundColor: Colors.black,
+              child: Text(
+                companionName[0],
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                ),
+              ),
             ),
-            Padding(
-              padding: const EdgeInsets.only(left: 10),
-              child: Text("Chat with $companionName"),
+            Flexible(
+              child: Padding(
+                padding: const EdgeInsets.only(left: 10),
+                child: Text("Chat with $companionName"),
+              ),
             )
           ],
         ),
@@ -65,7 +75,8 @@ class _ChatBodyState extends State<ChatBody> {
   void initState() {
     _firestore = ChatScreenBloc(
         messagesByDate: widget.messagesByDate,
-        chatName: widget.chatName, friendName: widget.companionName);
+        chatName: widget.chatName,
+        friendName: widget.companionName);
     _uiBuildStream = _firestore.getStreamForUi();
     _inputStream = _firestore.getInputStream();
     super.initState();
@@ -76,7 +87,9 @@ class _ChatBodyState extends State<ChatBody> {
       children: <Widget>[
         Flexible(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4,),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 4,
+            ),
             child: TextFormField(
               autofocus: true,
               keyboardType: TextInputType.multiline,
@@ -90,7 +103,10 @@ class _ChatBodyState extends State<ChatBody> {
           ),
         ),
         IconButton(
-          icon: Icon(Icons.send, color: Colors.deepOrange,),
+          icon: Icon(
+            Icons.send,
+            color: Colors.black,
+          ),
           onPressed: () {
             if (_inputController.text != "") {
               _inputStream.add(_inputController.text.trim());
@@ -103,29 +119,29 @@ class _ChatBodyState extends State<ChatBody> {
   }
 
   Widget _messagesList() => Expanded(
-    child: StreamBuilder<List<Message>>(
-      stream: _uiBuildStream,
-      builder: (context, messages) {
-        if (messages.data != null && messages.data.isNotEmpty) {
-          if (messages.data.length < 400)
-            _firestore.loadMoreMessages();
-          return ListView.builder(
-            reverse: true,
-            controller: _listViewController,
-            shrinkWrap: true,
-            itemCount: messages.data.length,
-            itemBuilder: (context, id) {
-              return MessageItem.fromMessage(messages.data[id]);
-            },
-          );
-        } else {
-          return SpinKitRing(
-            color: Colors.blue,
-          );
-        }
-      },
-    ),
-  );
+        child: StreamBuilder<List<Message>>(
+          stream: _uiBuildStream,
+          builder: (context, messages) {
+            if (messages.data != null && messages.data.isNotEmpty) {
+              return ListView.builder(
+                reverse: true,
+                controller: _listViewController,
+                shrinkWrap: true,
+                itemCount: messages.data.length,
+                itemBuilder: (context, id) {
+                  if (messages.data.length - 10 < id)
+                    _firestore.loadMoreMessages();
+                  return MessageItem.fromMessage(messages.data[id]);
+                },
+              );
+            } else {
+              return SpinKitRing(
+                color: Colors.blue,
+              );
+            }
+          },
+        ),
+      );
 
   @override
   Widget build(BuildContext context) {

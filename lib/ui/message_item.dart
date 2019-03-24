@@ -21,10 +21,10 @@ class MessageItem extends StatelessWidget {
         borderRadius.add(5);
       }
     } else {
-      borderRadius.add(isFromUser ? 13 : 5);
-      borderRadius.add(isFromUser ? 13 : 5);
-      borderRadius.add(isFromUser ? 5 : 13);
-      borderRadius.add(isFromUser ? 5 : 13);
+      borderRadius.add(isFromUser ? 20 : 10);
+      borderRadius.add(isFromUser ? 20 : 10);
+      borderRadius.add(isFromUser ? 10 : 20);
+      borderRadius.add(isFromUser ? 10 : 20);
     }
   }
 
@@ -48,7 +48,7 @@ class MessageItem extends StatelessWidget {
                   bottom: 4, top: 3) :
               EdgeInsets.only(left: 5, right: 50,
                   bottom: 4, top: 3),
-              color: isFromUser ? Colors.deepOrange : Colors.deepOrangeAccent,
+              color: isFromUser ? Colors.white : Colors.black54,
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.only(
                 topLeft: Radius.circular(borderRadius[0]),
@@ -65,14 +65,20 @@ class MessageItem extends StatelessWidget {
                     Container(
                       child: Text(
                         messageText,
-                        style: TextStyle(fontSize: 15),
+                        style: TextStyle(
+                          fontSize: 15,
+                          color: isFromUser ? Colors.black : Colors.white,
+                        ),
                       ),
                     ),
                     Container(
                       padding: EdgeInsets.only(top: 5),
                       child: Text(
                         sendTime,
-                        style: TextStyle(fontSize: 11),
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: isFromUser ? Colors.black : Colors.white,
+                        ),
                       ),
                     ),
                   ],

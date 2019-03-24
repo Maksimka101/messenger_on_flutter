@@ -5,7 +5,7 @@ import 'package:messenger_for_nou/blocs/main_screen_bloc.dart';
 import 'package:messenger_for_nou/models/chat_item_model.dart';
 import 'package:messenger_for_nou/ui/chat_item.dart';
 
-class MainChatsScreen extends StatelessWidget {
+class ChatsScreen extends StatelessWidget {
   final MainScreenBloc _mainScreenBloc = MainScreenBloc();
 
   @override
@@ -43,6 +43,7 @@ class _ChatsListState extends State<ChatsList> {
           return ListView.builder(
             itemCount: data.data.length,
             itemBuilder: (context, id) {
+              print(data.data[id].chatsByDate);
               return Column(
                 children: <Widget>[
                   ChatUnit(chatItem: data.data[id],),

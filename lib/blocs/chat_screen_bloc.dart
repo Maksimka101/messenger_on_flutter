@@ -15,7 +15,7 @@ class ChatScreenBloc {
     final date = DateTime.now();
     _currentDate = "${date.day} ${date.month} ${date.year}";
     _lastLoadDateIndex = messagesByDate.length - 1;
-    _loadPreviousMessages(messagesByDate.last);
+    loadMoreMessages();
   }
 
   final String chatName;
@@ -25,6 +25,7 @@ class ChatScreenBloc {
   List<Message> _previousMessages = [];
   int _lastLoadDateIndex;
   int _lastId = 0;
+  var _newMessages = <Message>[];
 
   final _messagesStream = BehaviorSubject<List<Message>>();
 
@@ -44,43 +45,38 @@ class ChatScreenBloc {
     if (_lastLoadDateIndex > 0) {
       _lastLoadDateIndex--;
       FirestoreRepository.getMessages(
-          chatName, messagesByDate[_lastLoadDateIndex])
+              chatName, messagesByDate[_lastLoadDateIndex])
           .listen((messages) {
         if (messages.isNotEmpty)
-          _previousMessages =
-              sortMessagesById(messages + _previousMessages);
+          _previousMessages = sortMessagesById(messages) + _previousMessages;
+          _messagesStream.sink.add(_newMessages + _previousMessages);
       });
     }
   }
 
-  _loadPreviousMessages(String date) {
-    print("previos");
-    if (date != _currentDate)
-      FirestoreRepository.getMessages(chatName, date).listen((messages) {
-        if (messages.isNotEmpty)
-          _previousMessages = sortMessagesById(messages);
-      });
-  }
-
   _listenForInput() => _inputStream.stream.listen((String messageText) {
-        FirestoreRepository.sendMessage(
-          createChatForNewDay: false,
+        FirestoreRepository().sendMessage(
+          createChatForNewDay: _currentDate != messagesByDate.last,
           chatName: chatName,
           data: messageText,
-          time: "${DateTime.now().hour}:${DateTime.now().minute}",
+          time: "${DateTime.now().hour}:${DateTime.now().minute < 10 ? "0" : ""}"
+            "${DateTime.now().minute}",
           senderId: User.userId,
           senderName: User.name,
           id: _lastId.toString(),
           currentDate: _currentDate,
         );
         _lastId++;
+        if (_currentDate != messagesByDate.last)
+          messagesByDate.add(_currentDate);
       });
 
   _listenForMessages() =>
       FirestoreRepository.getMessages(chatName, _currentDate)
           .listen((messages) {
-        _messagesStream.sink.add(
-            _previousMessages + sortMessagesById(messages));
+            _newMessages = sortMessagesById(messages);
+        _messagesStream.sink
+            .add(_newMessages + _previousMessages);
         if (messages != null) {
           for (Message i in messages) {
             int id = i.id;

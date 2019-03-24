@@ -50,7 +50,7 @@ class FirestoreRepository {
         return list;
       });
 
-  static sendMessage(
+  sendMessage(
       {String chatName,
       String senderId,
       String data,
@@ -58,14 +58,26 @@ class FirestoreRepository {
       String id,
       String senderName,
       bool createChatForNewDay,
-      String currentDate}) {
-    if (createChatForNewDay)
-      Firestore.instance
+      String currentDate}) async {
+    if (createChatForNewDay) {
+      await Firestore.instance
           .collection(_USERS_CHATS)
           .document(chatName)
           .collection(_MESSAGES_BY_DATE)
           .document(currentDate)
           .setData({});
+      Firestore.instance
+        .collection(_USERS_CHATS_INFO)
+        .document(senderId).get().then((chatInfo) {
+          final list = chatInfo.data[chatName][ChatItem.CHATS_BY_DATE]
+            .map((date) => date.toString()).toList();
+          list.add(currentDate);
+          chatInfo.data[chatName][ChatItem.CHATS_BY_DATE] = list;
+          Firestore.instance.collection(_USERS_CHATS_INFO)
+            .document(senderId).updateData(chatInfo.data);
+        });
+          
+    }
 
     Firestore.instance
         .collection(_USERS_CHATS)

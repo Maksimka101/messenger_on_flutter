@@ -6,11 +6,13 @@ import 'package:rxdart/rxdart.dart';
 class ChatItemBloc {
 
   ChatItemBloc({
-    this.chatName,
+    this.chatId,
     this.date,
-  });
+  }) {
+    print(chatId+" "+date);
+  }
 
-  final String chatName, date;
+  final String chatId, date;
 
   final _lastMessageStream =PublishSubject<Message>();
   Observable<Message> getLastMessageStream() {
@@ -19,7 +21,7 @@ class ChatItemBloc {
   }
 
   _listenForLastMessage() {
-    FirestoreRepository.getMessages(chatName, date).listen((messages) {
+    FirestoreRepository.getMessages(chatId, date).listen((messages) {
       if (messages.isNotEmpty)
         _lastMessageStream.sink.add(sortMessagesById(messages).first);
     });

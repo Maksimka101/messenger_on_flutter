@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:messenger_for_nou/blocs/chat_item_bloc.dart';
 import 'package:messenger_for_nou/models/message_model.dart';
-import 'package:messenger_for_nou/ui/message_ui.dart';
+import 'package:messenger_for_nou/ui/messages_screen.dart';
 import 'package:messenger_for_nou/models/chat_item_model.dart';
 
 class ChatUnit extends StatefulWidget {
@@ -13,6 +13,7 @@ class ChatUnit extends StatefulWidget {
 }
 
 class _ChatUnitState extends State<ChatUnit> {
+
   ChatItemBloc _bloc;
   Stream<Message> _streamForLastMessage;
   String _userName;
@@ -20,7 +21,7 @@ class _ChatUnitState extends State<ChatUnit> {
   @override
   void initState() {
     _bloc = ChatItemBloc(
-      chatName: widget.chatItem.chatName,
+      chatId: widget.chatItem.chatId,
       date: widget.chatItem.chatsByDate.last,
     );
     _streamForLastMessage = _bloc.getLastMessageStream();
@@ -31,24 +32,26 @@ class _ChatUnitState extends State<ChatUnit> {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      splashColor: Colors.orangeAccent,
+      splashColor: Colors.black,
       child: Row(
         children: <Widget>[
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 5, vertical: 5),
             child: CircleAvatar(
               radius: 24,
-              child: Text(_userName[0].toUpperCase()),
-              backgroundColor: Colors.cyanAccent,
+              child: Text(_userName[0].toUpperCase(), style: TextStyle(
+                fontSize: 20,
+                color: Colors.black,
+              ),),
+              backgroundColor: Colors.white70,
             ),
           ),
           Flexible(
             child: StreamBuilder<Message>(
               stream: _streamForLastMessage,
               builder: (context, messageData) {
-                if (messageData.data != null)
-                  _userName = messageData.data.senderName;
                 return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     Row(
                       children: <Widget>[
@@ -66,7 +69,7 @@ class _ChatUnitState extends State<ChatUnit> {
                           ),
                         ),
                         Padding(
-                          padding: EdgeInsets.all(1.0),
+                          padding: EdgeInsets.only(right: 7),
                           child: Text(
                             messageData.data != null
                                 ? messageData.data.sendTime
@@ -89,7 +92,7 @@ class _ChatUnitState extends State<ChatUnit> {
       onTap: () => Navigator.push(
           context,
           MaterialPageRoute(
-              builder: (context) => ChatUi(
+              builder: (context) => MessagesScreen(
                     companionName: widget.chatItem.senderName,
                     chatId: widget.chatItem.chatId,
                     messagesByDate: widget.chatItem.chatsByDate,
