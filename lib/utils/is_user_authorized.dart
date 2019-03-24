@@ -19,6 +19,8 @@ class Authorization {
   }
   
   static authorizeUser(String userName, String userId) async {
+    User.name = userName;
+    User.userId = userId;
     final sp = await SharedPreferences.getInstance();
     sp.setString(NAME, userName);
     sp.setString(ID, userId);

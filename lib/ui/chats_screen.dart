@@ -5,8 +5,7 @@ import 'package:messenger_for_nou/blocs/main_screen_bloc.dart';
 import 'package:messenger_for_nou/models/chat_item_model.dart';
 import 'package:messenger_for_nou/ui/chat_item.dart';
 
-class MainChatsScreen extends StatelessWidget {
-
+class ChatsScreen extends StatelessWidget {
   final MainScreenBloc _mainScreenBloc = MainScreenBloc();
 
   @override
@@ -18,8 +17,7 @@ class MainChatsScreen extends StatelessWidget {
       body: ChatsList(mainBloc: _mainScreenBloc),
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.brush),
-        onPressed: () =>
-          _mainScreenBloc.addChat(context),
+        onPressed: () => _mainScreenBloc.addChat(context),
       ),
     );
   }
@@ -33,16 +31,8 @@ class ChatsList extends StatefulWidget {
 }
 
 class _ChatsListState extends State<ChatsList> {
-
   MainScreenBloc _mainBloc;
   Stream<List<ChatItem>> _chatsStream;
-
-  @override
-  void initState() {
-    _mainBloc = widget.mainBloc;
-    _chatsStream = _mainBloc.getItemsStream();
-    super.initState();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -53,10 +43,12 @@ class _ChatsListState extends State<ChatsList> {
           return ListView.builder(
             itemCount: data.data.length,
             itemBuilder: (context, id) {
-              return ChatUnit(
-                chatName: data.data[id].chatName,
-                chatId: data.data[id].chatId,
-                companionName: data.data[id].senderName,
+              print(data.data[id].chatsByDate);
+              return Column(
+                children: <Widget>[
+                  ChatUnit(chatItem: data.data[id],),
+                  Divider(height: 0, indent: 60,),
+                ],
               );
             },
           );
@@ -69,6 +61,13 @@ class _ChatsListState extends State<ChatsList> {
           );
       },
     );
+  }
+
+  @override
+  void initState() {
+    _mainBloc = widget.mainBloc;
+    _chatsStream = _mainBloc.getItemsStream();
+    super.initState();
   }
 
   @override
