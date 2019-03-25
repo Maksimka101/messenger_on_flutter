@@ -10,6 +10,7 @@ class FirestoreRepository {
   static const _USERS = "users";
   static const _NAME = "name";
   static const _MESSAGES_BY_DATE = "messages_by_date";
+  static const LAST_SEEN_MESSAGE_ID = "last_seen_message_id";
 
   static Stream<List<String>> getAllUsersId() =>
       Firestore.instance.collection(_USERS).snapshots().map((users) {
@@ -32,6 +33,17 @@ class FirestoreRepository {
           });
         return list;
       });
+
+  static Stream<int> getLatSeenMessageId(String chatId) => Firestore.instance
+      .collection(_USERS_CHATS)
+      .document(chatId)
+      .snapshots()
+      .map((lastSeenDoc) => lastSeenDoc.data[LAST_SEEN_MESSAGE_ID]);
+
+  static setLastSeenMessageId(String chatId, int id) => Firestore.instance
+      .collection(_USERS_CHATS)
+      .document(chatId)
+      .updateData({LAST_SEEN_MESSAGE_ID: id});
 
   static Stream<List<Message>> getMessages(
           String chatName, String dateForLoad) =>
@@ -67,16 +79,20 @@ class FirestoreRepository {
           .document(currentDate)
           .setData({});
       Firestore.instance
-        .collection(_USERS_CHATS_INFO)
-        .document(senderId).get().then((chatInfo) {
-          final list = chatInfo.data[chatName][ChatItem.CHATS_BY_DATE]
-            .map((date) => date.toString()).toList();
-          list.add(currentDate);
-          chatInfo.data[chatName][ChatItem.CHATS_BY_DATE] = list;
-          Firestore.instance.collection(_USERS_CHATS_INFO)
-            .document(senderId).updateData(chatInfo.data);
-        });
-          
+          .collection(_USERS_CHATS_INFO)
+          .document(senderId)
+          .get()
+          .then((chatInfo) {
+        final list = chatInfo.data[chatName][ChatItem.CHATS_BY_DATE]
+            .map((date) => date.toString())
+            .toList();
+        list.add(currentDate);
+        chatInfo.data[chatName][ChatItem.CHATS_BY_DATE] = list;
+        Firestore.instance
+            .collection(_USERS_CHATS_INFO)
+            .document(senderId)
+            .updateData(chatInfo.data);
+      });
     }
 
     Firestore.instance
@@ -141,13 +157,18 @@ class FirestoreRepository {
         .collection(_USERS_CHATS)
         .document(chatId)
         .get();
-    if (chat.data == null)
+    if (chat.data == null) {
       Firestore.instance
           .collection(_USERS_CHATS)
           .document(chatId)
           .collection(_MESSAGES_BY_DATE)
           .document(currentDate)
           .setData({});
+      Firestore.instance
+          .collection(_USERS_CHATS)
+          .document(chatId)
+          .setData({LAST_SEEN_MESSAGE_ID: -1});
+    }
   }
 
   static Future<User> getUser(String userId) => Firestore.instance

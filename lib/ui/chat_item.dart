@@ -13,7 +13,6 @@ class ChatUnit extends StatefulWidget {
 }
 
 class _ChatUnitState extends State<ChatUnit> {
-
   ChatItemBloc _bloc;
   Stream<Message> _streamForLastMessage;
   String _userName;
@@ -29,6 +28,30 @@ class _ChatUnitState extends State<ChatUnit> {
     super.initState();
   }
 
+  Widget _getIsSeenDot(Message message) {
+    if (message != null && message.isSeen != null && !message.isSeen)
+      return Text(
+        "・",
+      );
+    else
+      return Container();
+  }
+
+  Widget _getLastMessageText(Message message) {
+    if (message != null) if (message.isFromUser)
+      return Text(
+        "You: ${message.messageText}",
+        maxLines: 1,
+      );
+    else
+      return Text(
+        message.messageText,
+        maxLines: 1,
+      );
+    else
+      return Container();
+  }
+
   @override
   Widget build(BuildContext context) {
     return InkWell(
@@ -39,10 +62,13 @@ class _ChatUnitState extends State<ChatUnit> {
             padding: EdgeInsets.symmetric(horizontal: 5, vertical: 5),
             child: CircleAvatar(
               radius: 24,
-              child: Text(_userName[0].toUpperCase(), style: TextStyle(
-                fontSize: 20,
-                color: Colors.black,
-              ),),
+              child: Text(
+                _userName[0].toUpperCase(),
+                style: TextStyle(
+                  fontSize: 20,
+                  color: Colors.black,
+                ),
+              ),
               backgroundColor: Colors.white70,
             ),
           ),
@@ -68,6 +94,7 @@ class _ChatUnitState extends State<ChatUnit> {
                             ),
                           ),
                         ),
+                        _getIsSeenDot(messageData.data),
                         Padding(
                           padding: EdgeInsets.only(right: 7),
                           child: Text(
@@ -80,7 +107,7 @@ class _ChatUnitState extends State<ChatUnit> {
                     ),
                     Padding(
                       padding: EdgeInsets.all(1.0),
-                      child: Text(messageData.data != null ? messageData.data.messageText : "", maxLines: 1,),
+                      child: _getLastMessageText(messageData.data),
                     )
                   ],
                 );

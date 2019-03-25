@@ -5,7 +5,6 @@ import 'package:messenger_for_nou/blocs/chat_screen_bloc.dart';
 import 'package:messenger_for_nou/models/message_model.dart';
 import 'package:messenger_for_nou/ui/message_item.dart';
 
-// TODO
 class MessagesScreen extends StatelessWidget {
   MessagesScreen(
       {@required this.companionName,
@@ -23,8 +22,8 @@ class MessagesScreen extends StatelessWidget {
         title: Row(
           children: <Widget>[
             CircleAvatar(
-              radius: 25,
-              backgroundColor: Colors.black,
+              radius: 20,
+              backgroundColor: Colors.black87,
               child: Text(
                 companionName[0],
                 overflow: TextOverflow.ellipsis,
@@ -65,54 +64,61 @@ class ChatBody extends StatefulWidget {
 }
 
 class _ChatBodyState extends State<ChatBody> {
-  ChatScreenBloc _firestore;
+  ChatScreenBloc _bloc;
   Stream<List<Message>> _uiBuildStream;
   StreamSink<String> _inputStream;
+  StreamSink<int> _lastSeenMessageIdStream;
   final _listViewController = ScrollController();
   final _inputController = TextEditingController();
+  int _lastSeenId = 0;
 
   @override
   void initState() {
-    _firestore = ChatScreenBloc(
+    _bloc = ChatScreenBloc(
         messagesByDate: widget.messagesByDate,
-        chatName: widget.chatName,
+        chatId: widget.chatName,
         friendName: widget.companionName);
-    _uiBuildStream = _firestore.getStreamForUi();
-    _inputStream = _firestore.getInputStream();
+    _uiBuildStream = _bloc.getStreamForUi();
+    _inputStream = _bloc.getInputStream();
+    _lastSeenMessageIdStream = _bloc.getLastSeenMessageId();
     super.initState();
   }
 
   Widget _inputMessageField() {
-    return Row(
+    return Column(
       children: <Widget>[
-        Flexible(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 4,
+        Divider(height: 0, color: Colors.black38,),
+        Row(
+          children: <Widget>[
+            Flexible(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 4,
+                ),
+                child: TextFormField(
+                  keyboardType: TextInputType.multiline,
+                  textInputAction: TextInputAction.newline,
+                  autocorrect: true,
+                  maxLines: null,
+                  textCapitalization: TextCapitalization.sentences,
+                  controller: _inputController,
+                  decoration: InputDecoration.collapsed(hintText: "Message"),
+                ),
+              ),
             ),
-            child: TextFormField(
-              autofocus: true,
-              keyboardType: TextInputType.multiline,
-              textInputAction: TextInputAction.newline,
-              autocorrect: true,
-              maxLines: null,
-              textCapitalization: TextCapitalization.sentences,
-              controller: _inputController,
-              decoration: InputDecoration.collapsed(hintText: "Message"),
+            IconButton(
+              icon: Icon(
+                Icons.send,
+                color: Colors.black,
+              ),
+              onPressed: () {
+                if (_inputController.text != "") {
+                  _inputStream.add(_inputController.text.trim());
+                  _inputController.clear();
+                }
+              },
             ),
-          ),
-        ),
-        IconButton(
-          icon: Icon(
-            Icons.send,
-            color: Colors.black,
-          ),
-          onPressed: () {
-            if (_inputController.text != "") {
-              _inputStream.add(_inputController.text.trim());
-              _inputController.clear();
-            }
-          },
+          ],
         ),
       ],
     );
@@ -121,17 +127,22 @@ class _ChatBodyState extends State<ChatBody> {
   Widget _messagesList() => Expanded(
         child: StreamBuilder<List<Message>>(
           stream: _uiBuildStream,
-          builder: (context, messages) {
-            if (messages.data != null && messages.data.isNotEmpty) {
+          builder: (context, messagesDoc) {
+            if (messagesDoc.data != null && messagesDoc.data.isNotEmpty) {
               return ListView.builder(
                 reverse: true,
                 controller: _listViewController,
                 shrinkWrap: true,
-                itemCount: messages.data.length,
+                itemCount: messagesDoc.data.length,
                 itemBuilder: (context, id) {
-                  if (messages.data.length - 10 < id)
-                    _firestore.loadMoreMessages();
-                  return MessageItem.fromMessage(messages.data[id]);
+                  final currentMessage = messagesDoc.data[id];
+                  if (!currentMessage.isFromUser && currentMessage.id > _lastSeenId) {
+                    _lastSeenId =currentMessage.id;
+                    _lastSeenMessageIdStream.add(currentMessage.id);
+                  }
+                  if (messagesDoc.data.length - 10 < id)
+                    _bloc.loadMoreMessages();
+                  return MessageItem.fromMessage(currentMessage);
                 },
               );
             } else {
@@ -155,7 +166,7 @@ class _ChatBodyState extends State<ChatBody> {
 
   @override
   void dispose() {
-    _firestore.dispose();
+    _bloc.dispose();
     super.dispose();
   }
 }

@@ -8,7 +8,7 @@ import 'dart:async';
 
 class ChatScreenBloc {
   ChatScreenBloc({
-    this.chatName,
+    this.chatId,
     this.friendName,
     this.messagesByDate,
   }) {
@@ -18,18 +18,20 @@ class ChatScreenBloc {
     loadMoreMessages();
   }
 
-  final String chatName;
+  final String chatId;
   final String friendName;
   final List<String> messagesByDate;
   String _currentDate;
   List<Message> _previousMessages = [];
   int _lastLoadDateIndex;
   int _lastId = 0;
+  int _lastSeenMessageId;
   var _newMessages = <Message>[];
 
   final _messagesStream = PublishSubject<List<Message>>();
 
   Observable<List<Message>> getStreamForUi() {
+    _listenForLastSeenMessage();
     _listenForMessages();
     return _messagesStream.stream;
   }
@@ -41,29 +43,47 @@ class ChatScreenBloc {
     return _inputStream.sink;
   }
 
-  loadMoreMessages() {
-    print(messagesByDate);
-    if (_lastLoadDateIndex > 0 &&
+  final _lastSeenMessageIdStream = PublishSubject<int>();
+
+  StreamSink<int> getLastSeenMessageId() {
+    _listenForLastSeenMessageId();
+    return _lastSeenMessageIdStream.sink;
+  }
+
+  void _listenForLastSeenMessageId() => _lastSeenMessageIdStream.stream
+      .listen((int id) => FirestoreRepository.setLastSeenMessageId(chatId, id));
+
+  void loadMoreMessages() {
+    if (_lastLoadDateIndex >= 0 &&
         messagesByDate[_lastLoadDateIndex] == _currentDate) {
       _lastLoadDateIndex--;
     }
     if (_lastLoadDateIndex >= 0) {
       FirestoreRepository.getMessages(
-              chatName, messagesByDate[_lastLoadDateIndex])
+              chatId, messagesByDate[_lastLoadDateIndex])
           .listen((messages) {
-        if (messages.isNotEmpty)
+        if (messages.isNotEmpty) {
           _previousMessages += sortMessagesById(messages);
-          print(messages.length);
+          if (_previousMessages.first.id > _lastId)
+            _lastId = _previousMessages.first.id + 1;
+        }
         _messagesStream.sink.add(_newMessages + _previousMessages);
       });
       _lastLoadDateIndex--;
     }
   }
 
-  _listenForInput() => _inputStream.stream.listen((String messageText) {
+  void _listenForLastSeenMessage() =>
+      FirestoreRepository.getLatSeenMessageId(chatId).listen((int lastSennId) {
+        _lastSeenMessageId = lastSennId;
+        _messagesStream.sink.add(_prepareMessages(
+            _newMessages + _previousMessages, lastSennId));
+      });
+
+  void _listenForInput() => _inputStream.stream.listen((String messageText) {
         FirestoreRepository.sendMessage(
           createChatForNewDay: _currentDate != messagesByDate.last,
-          chatName: chatName,
+          chatName: chatId,
           data: messageText,
           time:
               "${DateTime.now().hour}:${DateTime.now().minute < 10 ? "0" : ""}"
@@ -78,21 +98,36 @@ class ChatScreenBloc {
           messagesByDate.add(_currentDate);
       });
 
-  _listenForMessages() =>
-      FirestoreRepository.getMessages(chatName, _currentDate)
-          .listen((messages) {
+  void _listenForMessages() =>
+      FirestoreRepository.getMessages(chatId, _currentDate).listen((messages) {
         _newMessages = sortMessagesById(messages);
-        _messagesStream.sink.add(_newMessages + _previousMessages);
-        if (messages != null) {
-          for (Message i in messages) {
-            int id = i.id;
-            if (id > _lastId) _lastId = id;
-          }
-          _lastId++;
-        }
+        _messagesStream.sink.add(_prepareMessages(
+            _newMessages + _previousMessages, _lastSeenMessageId));
+        if (_newMessages.first.id > _lastId) _lastId = _newMessages.first.id;
+        _lastId++;
       });
 
+  // add "isSeen" and "ifFirst"
+  List<Message> _prepareMessages(
+      List<Message> messages, int id) {
+    final _messages = <Message>[];
+    for (int i = 0; i < messages.length - 1; i++) {
+      if (messages[i].isFromUser && id != null)
+        messages[i].isSeen = messages[i].id <= id;
+      else
+        messages[i].isSeen = true;
+      if (messages[i].isFromUser == messages[i + 1].isFromUser)
+        messages[i].isFirst = false;
+      else
+        messages[i].isFirst = true;
+        print(messages[i].messageText+" "+messages[i].isFirst.toString());
+      _messages.add(messages[i]);
+    }
+    return _messages;
+  }
+
   dispose() {
+    _lastSeenMessageIdStream.close();
     _messagesStream.close();
     _inputStream.close();
   }

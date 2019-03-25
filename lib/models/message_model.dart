@@ -14,10 +14,12 @@ class Message {
     this.senderId,
     this.senderName,
     this.isFirst,
+    this.isSeen,
   });
 
+  bool isSeen = true;
   final int id;
-  final bool isFirst;
+  bool isFirst;
   final String senderId;
   final String senderName;
   final String messageText;

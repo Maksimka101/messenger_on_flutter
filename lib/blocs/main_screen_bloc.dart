@@ -20,7 +20,6 @@ class MainScreenBloc {
   }
 
   _loadChatItems() {
-    // TODO fix bug при первом входе в уже существующий аккаунт сообщения не поазываюся
     FirestoreRepository.getChats(User.userId).listen((chatItems) {
       _chatItemsStream.sink.add(chatItems);
     });

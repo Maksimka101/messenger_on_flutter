@@ -16,7 +16,7 @@ class ChatsScreen extends StatelessWidget {
       ),
       body: ChatsList(mainBloc: _mainScreenBloc),
       floatingActionButton: FloatingActionButton(
-        child: Icon(Icons.brush),
+        child: Icon(Icons.edit),
         onPressed: () => _mainScreenBloc.addChat(context),
       ),
     );
