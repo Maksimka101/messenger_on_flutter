@@ -80,7 +80,7 @@ class _ChatUnitState extends State<ChatUnit> {
                     ),
                     Padding(
                       padding: EdgeInsets.all(1.0),
-                      child: Text(messageData.data != null ? messageData.data.messageText : ""),
+                      child: Text(messageData.data != null ? messageData.data.messageText : "", maxLines: 1,),
                     )
                   ],
                 );

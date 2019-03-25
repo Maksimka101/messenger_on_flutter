@@ -13,7 +13,7 @@ class MainScreenBloc {
   });
 
   final User user;
-  final _chatItemsStream = BehaviorSubject<List<ChatItem>>();
+  final _chatItemsStream = PublishSubject<List<ChatItem>>();
   Stream<List<ChatItem>> getItemsStream() {
     _loadChatItems();
     return _chatItemsStream.stream;

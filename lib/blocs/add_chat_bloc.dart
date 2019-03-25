@@ -6,14 +6,14 @@ class AddChatBloc {
 
 
   // it gain user mail and check is this user exist
-  final _userIdStream = BehaviorSubject<String>();
+  final _userIdStream = PublishSubject<String>();
   StreamSink<String> getStreamForUserMail() {
     _listenForUserInput();
     return _userIdStream.sink;
   }
 
   // this stream yield true if user exist
-  final _isExistStream = BehaviorSubject<bool>();
+  final _isExistStream = PublishSubject<bool>();
   Stream<bool> getAnswerStream() => _isExistStream.stream;
 
 
