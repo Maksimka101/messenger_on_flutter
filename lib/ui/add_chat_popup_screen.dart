@@ -2,8 +2,10 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:messenger_for_nou/blocs/add_chat_bloc.dart';
+import 'package:messenger_for_nou/models/chat_item_model.dart';
 import 'package:messenger_for_nou/models/user_model.dart';
 import 'package:messenger_for_nou/resources/firestore_repository.dart';
+import 'package:messenger_for_nou/utils/cache.dart';
 
 class AddChatScreen extends StatefulWidget {
   @override

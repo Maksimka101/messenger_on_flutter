@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:messenger_for_nou/blocs/chat_item_bloc.dart';
+import 'package:messenger_for_nou/blocs/chat_screen_bloc.dart';
 import 'package:messenger_for_nou/models/message_model.dart';
 import 'package:messenger_for_nou/ui/messages_screen.dart';
 import 'package:messenger_for_nou/models/chat_item_model.dart';
@@ -13,27 +13,53 @@ class ChatUnit extends StatefulWidget {
 }
 
 class _ChatUnitState extends State<ChatUnit> {
-  ChatItemBloc _bloc;
-  Stream<Message> _streamForLastMessage;
+  ChatScreenBloc _bloc;
+  Stream<List<Message>> _streamForLastMessage;
   String _userName;
 
   @override
   void initState() {
-    _bloc = ChatItemBloc(
+    _bloc = ChatScreenBloc(
       chatId: widget.chatItem.chatId,
-      date: widget.chatItem.chatsByDate.last,
+      messagesByDate: widget.chatItem.chatsByDate,
     );
-    _streamForLastMessage = _bloc.getLastMessageStream();
+    _streamForLastMessage = _bloc.getStreamForUi();
     _userName = widget.chatItem.senderName;
     super.initState();
   }
 
-  Widget _getIsSeenDot(Message message) {
-    if (message != null && message.isSeen != null && !message.isSeen)
+  // return dot if message wasn't seen
+  Widget _getIsSeenDot(List<Message> messages) {
+    if (messages != null &&
+        messages.first.isFromUser &&
+        messages.first.isSeen != null &&
+        !messages.first.isSeen)
       return Text(
         "・",
       );
-    else
+    else if (messages != null &&
+        !messages.first.isFromUser &&
+        messages.first.isSeen != null &&
+        !messages.first.isSeen) {
+          int count = 0;
+          for (int i = 0; i < messages.length; i++) {
+            if (!messages[i].isFromUser && messages[i].isSeen != null && !messages[i].isSeen) 
+              count++;
+            else if (i == messages.length-1) 
+              _bloc.loadMoreMessages();
+            else 
+              break;
+          }
+          return Padding(
+            padding: const EdgeInsets.only(right: 5),
+            child: CircleAvatar(
+              radius: 8,
+              backgroundColor: Colors.black45,
+              child: Text(count.toString(),
+              style: TextStyle(color: Colors.white, fontSize: 13),),
+            ),
+          );
+    } else
       return Container();
   }
 
@@ -49,8 +75,52 @@ class _ChatUnitState extends State<ChatUnit> {
         maxLines: 1,
       );
     else
-      return Container();
+      return Text("");
   }
+
+  Widget _lastMessageWidget() => Flexible(
+        child: StreamBuilder<List<Message>>(
+          stream: _streamForLastMessage,
+          builder: (context, messageData) {
+            Message lastMessage;
+            if (messageData.data != null)
+              lastMessage = messageData.data.first;
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: Padding(
+                        padding: EdgeInsets.all(1.0),
+                        child: Text(
+                          _userName,
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ),
+                    _getIsSeenDot(messageData.data),
+                    Padding(
+                      padding: EdgeInsets.only(right: 7),
+                      child: Text(
+                        lastMessage != null ? lastMessage.sendTime : "",
+                      ),
+                    ),
+                  ],
+                ),
+                Padding(
+                  padding: EdgeInsets.all(1.0),
+                  child: _getLastMessageText(lastMessage),
+                )
+              ],
+            );
+          },
+        ),
+      );
 
   @override
   Widget build(BuildContext context) {
@@ -72,48 +142,7 @@ class _ChatUnitState extends State<ChatUnit> {
               backgroundColor: Colors.white70,
             ),
           ),
-          Flexible(
-            child: StreamBuilder<Message>(
-              stream: _streamForLastMessage,
-              builder: (context, messageData) {
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Row(
-                      children: <Widget>[
-                        Expanded(
-                          child: Padding(
-                            padding: EdgeInsets.all(1.0),
-                            child: Text(
-                              _userName,
-                              style: TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.w500,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ),
-                        _getIsSeenDot(messageData.data),
-                        Padding(
-                          padding: EdgeInsets.only(right: 7),
-                          child: Text(
-                            messageData.data != null
-                                ? messageData.data.sendTime
-                                : "",
-                          ),
-                        ),
-                      ],
-                    ),
-                    Padding(
-                      padding: EdgeInsets.all(1.0),
-                      child: _getLastMessageText(messageData.data),
-                    )
-                  ],
-                );
-              },
-            ),
-          )
+          _lastMessageWidget(),
         ],
       ),
       onTap: () => Navigator.push(
@@ -123,6 +152,7 @@ class _ChatUnitState extends State<ChatUnit> {
                     companionName: widget.chatItem.senderName,
                     chatId: widget.chatItem.chatId,
                     messagesByDate: widget.chatItem.chatsByDate,
+                    bloc: _bloc,
                   ))),
     );
   }

@@ -1,9 +1,9 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:messenger_for_nou/blocs/main_screen_bloc.dart';
 import 'package:messenger_for_nou/models/chat_item_model.dart';
 import 'package:messenger_for_nou/ui/chat_item.dart';
+import 'package:messenger_for_nou/utils/cache.dart';
 
 class ChatsScreen extends StatelessWidget {
   final MainScreenBloc _mainScreenBloc = MainScreenBloc();
@@ -36,29 +36,39 @@ class _ChatsListState extends State<ChatsList> {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<List<ChatItem>>(
-      stream: _chatsStream,
-      builder: (context, data) {
-        if (data.data != null && data.data.isNotEmpty)
-          return ListView.builder(
-            itemCount: data.data.length,
-            itemBuilder: (context, id) {
-              return Column(
-                children: <Widget>[
-                  ChatUnit(chatItem: data.data[id],),
-                  Divider(height: 0, indent: 60,),
-                ],
-              );
+    return FutureBuilder<List<ChatItem>>(
+      future: Cache.getChats(),
+      builder: (context, snapshot) => StreamBuilder<List<ChatItem>>(
+            stream: _chatsStream,
+            initialData: snapshot.data,
+            builder: (context, data) {
+              if (data.data != null && data.data.isNotEmpty)
+                return ListView.builder(
+                  itemCount: data.data.length,
+                  itemBuilder: (context, id) {
+                    Cache.addChat(data.data[id]);
+                    return Column(
+                      children: <Widget>[
+                        ChatUnit(
+                          chatItem: data.data[id],
+                        ),
+                        Divider(
+                          height: 0,
+                          indent: 60,
+                        ),
+                      ],
+                    );
+                  },
+                );
+              else
+                return Center(
+                  child: Text(
+                    "Nothing is here.\nPut on button to create new chat.",
+                    textAlign: TextAlign.center,
+                  ),
+                );
             },
-          );
-        else
-          return Center(
-            child: Text(
-              "Nothing is here.\nPut on button to create new chat.",
-              textAlign: TextAlign.center,
-            ),
-          );
-      },
+          ),
     );
   }
 

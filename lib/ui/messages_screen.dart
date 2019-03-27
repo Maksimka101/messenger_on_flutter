@@ -9,8 +9,10 @@ class MessagesScreen extends StatelessWidget {
   MessagesScreen(
       {@required this.companionName,
       @required this.chatId,
-      @required this.messagesByDate});
+      @required this.messagesByDate,
+      this.bloc});
 
+  final ChatScreenBloc bloc;
   final String companionName;
   final String chatId;
   final List<String> messagesByDate;
@@ -46,6 +48,7 @@ class MessagesScreen extends StatelessWidget {
         companionName: companionName,
         chatName: chatId,
         messagesByDate: messagesByDate,
+        bloc: bloc,
       ),
     );
   }
@@ -55,7 +58,10 @@ class ChatBody extends StatefulWidget {
   ChatBody(
       {@required this.companionName,
       @required this.chatName,
-      @required this.messagesByDate});
+      @required this.messagesByDate,
+      this.bloc});
+
+  final ChatScreenBloc bloc;
   final List<String> messagesByDate;
   final String companionName;
   final String chatName;
@@ -74,10 +80,13 @@ class _ChatBodyState extends State<ChatBody> {
 
   @override
   void initState() {
-    _bloc = ChatScreenBloc(
+    if (widget.bloc == null)
+      _bloc = ChatScreenBloc(
         messagesByDate: widget.messagesByDate,
         chatId: widget.chatName,
-        friendName: widget.companionName);
+      );
+    else 
+      _bloc =widget.bloc;
     _uiBuildStream = _bloc.getStreamForUi();
     _inputStream = _bloc.getInputStream();
     _lastSeenMessageIdStream = _bloc.getLastSeenMessageId();
@@ -87,7 +96,10 @@ class _ChatBodyState extends State<ChatBody> {
   Widget _inputMessageField() {
     return Column(
       children: <Widget>[
-        Divider(height: 0, color: Colors.black38,),
+        Divider(
+          height: 0,
+          color: Colors.black38,
+        ),
         Row(
           children: <Widget>[
             Flexible(
@@ -136,8 +148,10 @@ class _ChatBodyState extends State<ChatBody> {
                 itemCount: messagesDoc.data.length,
                 itemBuilder: (context, id) {
                   final currentMessage = messagesDoc.data[id];
-                  if (!currentMessage.isFromUser && currentMessage.id > _lastSeenId) {
-                    _lastSeenId =currentMessage.id;
+                  if (!currentMessage.isFromUser &&
+                      currentMessage.id > _lastSeenId &&
+                      !currentMessage.isSeen) {
+                    _lastSeenId = currentMessage.id;
                     _lastSeenMessageIdStream.add(currentMessage.id);
                   }
                   if (messagesDoc.data.length - 10 < id)
@@ -145,7 +159,12 @@ class _ChatBodyState extends State<ChatBody> {
                   return MessageItem.fromMessage(currentMessage);
                 },
               );
-            } else {
+            } else if (messagesDoc.data == null)
+              return Center(
+                child: Text("No messages yet"),
+              );
+            else {
+              _bloc.loadMoreMessages();
               return SpinKitRing(
                 color: Colors.blue,
               );

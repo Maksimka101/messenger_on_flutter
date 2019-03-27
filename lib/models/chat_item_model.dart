@@ -4,8 +4,10 @@ class ChatItem {
       this.chatName,
       this.senderName,
       this.senderId,
-      this.chatsByDate});
+      this.chatsByDate,
+      this.isPreloaded,});
 
+  bool isPreloaded = false;
   final String chatId;
   final String chatName;
   final String senderName;
@@ -22,11 +24,11 @@ class ChatItem {
       chatsByData.add(date.toString());
     }
     return ChatItem(
-        chatId: key,
-        chatName: data[_SENDER_NAME],
-        senderName: data[_SENDER_NAME],
-        senderId: data[_SENDER_ID],
-        chatsByDate: chatsByData,
+      chatId: key,
+      chatName: data[_SENDER_NAME],
+      senderName: data[_SENDER_NAME],
+      senderId: data[_SENDER_ID],
+      chatsByDate: chatsByData,
     );
   }
 
@@ -37,4 +39,18 @@ class ChatItem {
           CHATS_BY_DATE: chatsByDate,
         }
       };
+
+  static ChatItem fromList(List<String> chatElems) {
+    return ChatItem(
+      chatId: chatElems[0],
+      chatName: chatElems[1],
+      senderName: chatElems[2],
+      senderId: chatElems[3],
+      chatsByDate: <String>[chatElems[4]],
+      isPreloaded: true,
+    );
+  }
+
+  List<String> toList() =>
+      <String>[chatId, chatName, senderName, senderId, chatsByDate.last];
 }

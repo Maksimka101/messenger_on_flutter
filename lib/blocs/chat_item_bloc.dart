@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:messenger_for_nou/models/message_model.dart';
 import 'package:messenger_for_nou/resources/firestore_repository.dart';
 import 'package:messenger_for_nou/utils/sorting.dart';

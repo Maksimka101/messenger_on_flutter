@@ -108,7 +108,7 @@ class MessageItem extends StatelessWidget {
         sendTime: message.sendTime,
         messageText: message.messageText,
         senderName: message.senderName,
-        isSeen: message.isSeen,
+        isSeen: message.isFromUser ? message.isSeen : true,
         isFirst: message.isFirst,
       );
 }

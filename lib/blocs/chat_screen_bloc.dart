@@ -9,7 +9,6 @@ import 'dart:async';
 class ChatScreenBloc {
   ChatScreenBloc({
     this.chatId,
-    this.friendName,
     this.messagesByDate,
   }) {
     final date = DateTime.now();
@@ -19,16 +18,15 @@ class ChatScreenBloc {
   }
 
   final String chatId;
-  final String friendName;
   final List<String> messagesByDate;
   String _currentDate;
-  List<Message> _previousMessages = [];
+  var _previousMessages = <Message>[];
   int _lastLoadDateIndex;
   int _lastId = 0;
   int _lastSeenMessageId;
   var _newMessages = <Message>[];
 
-  final _messagesStream = PublishSubject<List<Message>>();
+  final _messagesStream = BehaviorSubject<List<Message>>();
 
   Observable<List<Message>> getStreamForUi() {
     _listenForLastSeenMessage();
@@ -67,7 +65,8 @@ class ChatScreenBloc {
           if (_previousMessages.first.id > _lastId)
             _lastId = _previousMessages.first.id + 1;
         }
-        _messagesStream.sink.add(_newMessages + _previousMessages);
+        _messagesStream.sink.add(_prepareMessages(
+            (_newMessages + _previousMessages), _lastSeenMessageId));
       });
       _lastLoadDateIndex--;
     }
@@ -76,8 +75,8 @@ class ChatScreenBloc {
   void _listenForLastSeenMessage() =>
       FirestoreRepository.getLatSeenMessageId(chatId).listen((int lastSennId) {
         _lastSeenMessageId = lastSennId;
-        _messagesStream.sink.add(_prepareMessages(
-            _newMessages + _previousMessages, lastSennId));
+        _messagesStream.sink.add(
+            _prepareMessages(_newMessages + _previousMessages, lastSennId));
       });
 
   void _listenForInput() => _inputStream.stream.listen((String messageText) {
@@ -103,24 +102,19 @@ class ChatScreenBloc {
         _newMessages = sortMessagesById(messages);
         _messagesStream.sink.add(_prepareMessages(
             _newMessages + _previousMessages, _lastSeenMessageId));
-        if (_newMessages.first.id > _lastId) _lastId = _newMessages.first.id;
+        if (_newMessages.isNotEmpty && _newMessages.first.id > _lastId)
+          _lastId = _newMessages.first.id;
         _lastId++;
       });
 
   // add "isSeen" and "ifFirst"
-  List<Message> _prepareMessages(
-      List<Message> messages, int id) {
+  List<Message> _prepareMessages(List<Message> messages, int id) {
     final _messages = <Message>[];
     for (int i = 0; i < messages.length - 1; i++) {
-      if (messages[i].isFromUser && id != null)
+      if (id != null)
         messages[i].isSeen = messages[i].id <= id;
       else
         messages[i].isSeen = true;
-      if (messages[i].isFromUser == messages[i + 1].isFromUser)
-        messages[i].isFirst = false;
-      else
-        messages[i].isFirst = true;
-        print(messages[i].messageText+" "+messages[i].isFirst.toString());
       _messages.add(messages[i]);
     }
     return _messages;
