@@ -1,18 +1,19 @@
 class ChatItem {
-  ChatItem(
-      {this.chatId,
-      this.chatName,
-      this.senderName,
-      this.senderId,
-      this.chatsByDate,
-      this.isPreloaded,});
+  ChatItem({
+    this.chatId,
+    this.chatName,
+    this.senderName,
+    this.senderId,
+    this.chatsByDate,
+    this.isPreloaded,
+  });
 
   bool isPreloaded = false;
   final String chatId;
   final String chatName;
   final String senderName;
   final String senderId;
-  final List<String> chatsByDate;
+  List<String> chatsByDate = [];
 
   static const _SENDER_NAME = "senderName";
   static const _SENDER_ID = "senderId";
@@ -51,6 +52,11 @@ class ChatItem {
     );
   }
 
-  List<String> toList() =>
-      <String>[chatId, chatName, senderName, senderId, chatsByDate.last];
+  List<String> toList() => <String>[
+        chatId,
+        chatName,
+        senderName,
+        senderId,
+        chatsByDate.isNotEmpty ? chatsByDate.last : ""
+      ];
 }

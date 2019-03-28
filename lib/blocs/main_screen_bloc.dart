@@ -20,7 +20,7 @@ class MainScreenBloc {
   }
 
   _loadChatItems() {
-    FirestoreRepository.getChats(User.userId).listen((chatItems) {
+    FirestoreRepository.getChats(User.id).listen((chatItems) {
       _chatItemsStream.sink.add(chatItems);
     });
   }

@@ -24,7 +24,7 @@ class _AddChatScreenState extends State<AddChatScreen> {
     _bloc.getAnswerStream().listen((isExist) {
       if (isExist) {
         FirestoreRepository.addNewChat(
-            sender1Id: User.userId,
+            sender1Id: User.id,
             sender2Id: _inputController.text.replaceAll(".", ""));
         Navigator.pop(_context);
       }

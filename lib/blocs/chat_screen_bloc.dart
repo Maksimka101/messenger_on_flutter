@@ -73,7 +73,7 @@ class ChatScreenBloc {
   }
 
   void _listenForLastSeenMessage() =>
-      FirestoreRepository.getLatSeenMessageId(chatId).listen((int lastSennId) {
+      FirestoreRepository.getLastSeenMessageId(chatId).listen((int lastSennId) {
         _lastSeenMessageId = lastSennId;
         _messagesStream.sink.add(
             _prepareMessages(_newMessages + _previousMessages, lastSennId));
@@ -81,19 +81,19 @@ class ChatScreenBloc {
 
   void _listenForInput() => _inputStream.stream.listen((String messageText) {
         FirestoreRepository.sendMessage(
-          createChatForNewDay: _currentDate != messagesByDate.last,
+          createChatForNewDay: messagesByDate.isNotEmpty ? _currentDate != messagesByDate.last : true,
           chatName: chatId,
           data: messageText,
           time:
               "${DateTime.now().hour}:${DateTime.now().minute < 10 ? "0" : ""}"
               "${DateTime.now().minute}",
-          senderId: User.userId,
+          senderId: User.id,
           senderName: User.name,
           id: _lastId.toString(),
           currentDate: _currentDate,
         );
         _lastId++;
-        if (_currentDate != messagesByDate.last)
+        if (messagesByDate.isEmpty || _currentDate != messagesByDate.last)
           messagesByDate.add(_currentDate);
       });
 
@@ -101,7 +101,7 @@ class ChatScreenBloc {
       FirestoreRepository.getMessages(chatId, _currentDate).listen((messages) {
         _newMessages = sortMessagesById(messages);
         _messagesStream.sink.add(_prepareMessages(
-            _newMessages + _previousMessages, _lastSeenMessageId));
+            (_newMessages + _previousMessages)+(_newMessages + _previousMessages), _lastSeenMessageId));
         if (_newMessages.isNotEmpty && _newMessages.first.id > _lastId)
           _lastId = _newMessages.first.id;
         _lastId++;

@@ -32,7 +32,7 @@ class ChatItemBloc {
   }
 
   void _listenForLastSeenMessageId() =>
-      FirestoreRepository.getLatSeenMessageId(chatId).listen((int id) {
+      FirestoreRepository.getLastSeenMessageId(chatId).listen((int id) {
         if (_lastMessage != null) {
           _lastMessage.isSeen = _lastMessage.id <= id;
           _lastSeenMessageId = id;

@@ -159,16 +159,10 @@ class _ChatBodyState extends State<ChatBody> {
                   return MessageItem.fromMessage(currentMessage);
                 },
               );
-            } else if (messagesDoc.data == null)
+            } else 
               return Center(
                 child: Text("No messages yet"),
               );
-            else {
-              _bloc.loadMoreMessages();
-              return SpinKitRing(
-                color: Colors.blue,
-              );
-            }
           },
         ),
       );

@@ -30,7 +30,7 @@ class Message {
         id: int.parse(key),
         sendTime: value[TIME_FIELD],
         messageText: value[TEXT_FIELD],
-        isFromUser: User.userId == value[SENDER],
+        isFromUser: User.id == value[SENDER],
         senderName: value[SENDER_NAME],
       );
 

@@ -8,18 +8,12 @@ class FirestoreRepository {
   static const _USERS_CHATS_INFO = "users_chats_info";
   static const MESSAGES = "messages";
   static const _USERS = "users";
-  static const _NAME = "name";
+  static const _SENDER_NAME = "senderName";
+  static const _SENDER_ID = "senderId";
+  static const NAME = "name";
+  static const MAIL = "mail";
   static const _MESSAGES_BY_DATE = "messages_by_date";
   static const LAST_SEEN_MESSAGE_ID = "last_seen_message_id";
-
-  static Stream<List<String>> getAllUsersId() =>
-      Firestore.instance.collection(_USERS).snapshots().map((users) {
-        final list = List<String>();
-        users.documents.map((doc) {
-          list.add(doc.documentID);
-        }).toList();
-        return list;
-      });
 
   static Stream<List<ChatItem>> getChats(String userId) => Firestore.instance
           .collection(_USERS_CHATS_INFO)
@@ -34,12 +28,12 @@ class FirestoreRepository {
         return list;
       });
 
-  static Stream<int> getLatSeenMessageId(String chatId) => Firestore.instance
+  static Stream<int> getLastSeenMessageId(String chatId) => Firestore.instance
       .collection(_USERS_CHATS)
       .document(chatId)
       .snapshots()
       .map((lastSeenDoc) => lastSeenDoc.data[LAST_SEEN_MESSAGE_ID]);
-
+      
   static setLastSeenMessageId(String chatId, int id) => Firestore.instance
       .collection(_USERS_CHATS)
       .document(chatId)
@@ -110,7 +104,7 @@ class FirestoreRepository {
     });
   }
 
-  static addNewUser(String userId, String userName) async {
+  static addNewUser(String userId, String userName, String userMail) async {
     final user =
         await Firestore.instance.collection(_USERS).document(userId).get();
 
@@ -118,7 +112,7 @@ class FirestoreRepository {
       Firestore.instance
           .collection(_USERS)
           .document(userId)
-          .setData({_NAME: userName});
+          .setData({NAME: userName, MAIL:userMail});
       Firestore.instance
           .collection(_USERS_CHATS_INFO)
           .document(userId)
@@ -135,10 +129,10 @@ class FirestoreRepository {
 
     var data =
         await Firestore.instance.collection(_USERS).document(sender1Id).get();
-    sender1Name = data.data[_NAME];
+    sender1Name = data.data[NAME];
     data =
         await Firestore.instance.collection(_USERS).document(sender2Id).get();
-    sender2Name = data.data[_NAME];
+    sender2Name = data.data[NAME];
 
     await _updateChatInfoForUser(
         chatId: chatId,
@@ -171,16 +165,32 @@ class FirestoreRepository {
     }
   }
 
+  static Future<List<User>> getAllUsers() => Firestore.instance
+          .collection(_USERS)
+          .getDocuments().then((usersDoc) {
+            final userList = <User>[];
+            for (final user in usersDoc.documents) {
+              userList.add(User(
+                userId: user.documentID,
+                userName: user.data["name"],
+                userMail: user.data["mail"],
+              ));
+            }
+            return userList;
+          });
+
   static Future<User> getUser(String userId) => Firestore.instance
           .collection(_USERS)
           .document(userId)
           .get()
           .then((userMap) {
-        User.userId = userId;
-        User.name = userMap.data["name"];
+        User.id = userId;
+        User.name = userMap.data[NAME];
+        User.mail = userMap.data[MAIL];
         return User(
-          userIdentity: userId,
-          userName: userMap.data["name"],
+          userId: userId,
+          userName: userMap.data[NAME],
+          userMail: userMap.data[MAIL],
         );
       });
 
@@ -195,8 +205,8 @@ class FirestoreRepository {
         .document(userId)
         .updateData({
       chatId: {
-        "senderId": user2Id,
-        "senderName": user2Name,
+        _SENDER_ID: user2Id,
+        _SENDER_NAME: user2Name,
         ChatItem.CHATS_BY_DATE: [currentDate],
       }
     });

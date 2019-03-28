@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:messenger_for_nou/blocs/chat_screen_bloc.dart';
 import 'package:messenger_for_nou/models/message_model.dart';
-import 'package:messenger_for_nou/ui/messages_screen.dart';
+import 'package:messenger_for_nou/ui/chat_screen.dart';
 import 'package:messenger_for_nou/models/chat_item_model.dart';
 
 class ChatUnit extends StatefulWidget {
@@ -30,14 +30,14 @@ class _ChatUnitState extends State<ChatUnit> {
 
   // return dot if message wasn't seen
   Widget _getIsSeenDot(List<Message> messages) {
-    if (messages != null &&
+    if (messages != null && messages.isNotEmpty &&
         messages.first.isFromUser &&
         messages.first.isSeen != null &&
         !messages.first.isSeen)
       return Text(
         "・",
       );
-    else if (messages != null &&
+    else if (messages != null && messages.isNotEmpty &&
         !messages.first.isFromUser &&
         messages.first.isSeen != null &&
         !messages.first.isSeen) {
@@ -83,7 +83,7 @@ class _ChatUnitState extends State<ChatUnit> {
           stream: _streamForLastMessage,
           builder: (context, messageData) {
             Message lastMessage;
-            if (messageData.data != null)
+            if (messageData.data != null && messageData.data.isNotEmpty)
               lastMessage = messageData.data.first;
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
