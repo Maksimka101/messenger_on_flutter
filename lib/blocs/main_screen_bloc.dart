@@ -10,12 +10,13 @@ import 'package:rxdart/rxdart.dart';
 class MainScreenBloc {
   MainScreenBloc({
     this.user,
-  });
+  }) {
+    _loadChatItems();
+  }
 
   final User user;
-  final _chatItemsStream = PublishSubject<List<ChatItem>>();
+  final _chatItemsStream = BehaviorSubject<List<ChatItem>>();
   Stream<List<ChatItem>> getItemsStream() {
-    _loadChatItems();
     return _chatItemsStream.stream;
   }
 

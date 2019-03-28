@@ -33,7 +33,7 @@ class FirestoreRepository {
       .document(chatId)
       .snapshots()
       .map((lastSeenDoc) => lastSeenDoc.data[LAST_SEEN_MESSAGE_ID]);
-      
+
   static setLastSeenMessageId(String chatId, int id) => Firestore.instance
       .collection(_USERS_CHATS)
       .document(chatId)
@@ -112,7 +112,7 @@ class FirestoreRepository {
       Firestore.instance
           .collection(_USERS)
           .document(userId)
-          .setData({NAME: userName, MAIL:userMail});
+          .setData({NAME: userName, MAIL: userMail});
       Firestore.instance
           .collection(_USERS_CHATS_INFO)
           .document(userId)
@@ -165,19 +165,18 @@ class FirestoreRepository {
     }
   }
 
-  static Future<List<User>> getAllUsers() => Firestore.instance
-          .collection(_USERS)
-          .getDocuments().then((usersDoc) {
-            final userList = <User>[];
-            for (final user in usersDoc.documents) {
-              userList.add(User(
-                userId: user.documentID,
-                userName: user.data["name"],
-                userMail: user.data["mail"],
-              ));
-            }
-            return userList;
-          });
+  static Future<List<User>> getAllUsers() =>
+      Firestore.instance.collection(_USERS).getDocuments().then((usersDoc) {
+        final userList = <User>[];
+        for (final user in usersDoc.documents) {
+          userList.add(User(
+            userId: user.documentID,
+            userName: user.data["name"],
+            userMail: user.data["mail"],
+          ));
+        }
+        return userList;
+      });
 
   static Future<User> getUser(String userId) => Firestore.instance
           .collection(_USERS)

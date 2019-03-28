@@ -62,7 +62,6 @@ class AuthorizeBloc {
       }
       _userMail = user.email;
       _authorizeStateStream.sink.add(AuthorizeState.userInformationInput);
-      // FirestoreRepository.addNewUser(userId, userName, user.email);
     }
   }
 

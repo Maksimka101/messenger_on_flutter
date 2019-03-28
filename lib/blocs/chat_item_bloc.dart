@@ -7,16 +7,17 @@ class ChatItemBloc {
   ChatItemBloc({
     this.chatId,
     this.date,
-  });
+  }) {
+    _listenForLastMessage();
+    _listenForLastSeenMessageId();
+  }
 
   final String chatId, date;
   Message _lastMessage;
   int _lastSeenMessageId;
 
-  final _lastMessageStream = PublishSubject<Message>();
+  final _lastMessageStream = BehaviorSubject<Message>();
   Observable<Message> getLastMessageStream() {
-    _listenForLastMessage();
-    _listenForLastSeenMessageId();
     return _lastMessageStream.stream;
   }
 

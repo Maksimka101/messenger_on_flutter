@@ -15,7 +15,12 @@ class ChatScreenBloc {
     _currentDate = "${date.day} ${date.month} ${date.year}";
     _lastLoadDateIndex = messagesByDate.length - 1;
     loadMoreMessages();
+    _listenForLastSeenMessage();
+    _listenForInput();
+    _listenForLastSeenMessageId();
+    _listenForMessages();
   }
+
 
   final String chatId;
   final List<String> messagesByDate;
@@ -29,22 +34,18 @@ class ChatScreenBloc {
   final _messagesStream = BehaviorSubject<List<Message>>();
 
   Observable<List<Message>> getStreamForUi() {
-    _listenForLastSeenMessage();
-    _listenForMessages();
     return _messagesStream.stream;
   }
 
-  final _inputStream = PublishSubject<String>();
+  final _inputStream = BehaviorSubject<String>();
 
   StreamSink<String> getInputStream() {
-    _listenForInput();
     return _inputStream.sink;
   }
 
-  final _lastSeenMessageIdStream = PublishSubject<int>();
+  final _lastSeenMessageIdStream = BehaviorSubject<int>();
 
   StreamSink<int> getLastSeenMessageId() {
-    _listenForLastSeenMessageId();
     return _lastSeenMessageIdStream.sink;
   }
 
@@ -100,8 +101,9 @@ class ChatScreenBloc {
   void _listenForMessages() =>
       FirestoreRepository.getMessages(chatId, _currentDate).listen((messages) {
         _newMessages = sortMessagesById(messages);
+        print(_newMessages.length);
         _messagesStream.sink.add(_prepareMessages(
-            (_newMessages + _previousMessages)+(_newMessages + _previousMessages), _lastSeenMessageId));
+            (_newMessages + _previousMessages), _lastSeenMessageId));
         if (_newMessages.isNotEmpty && _newMessages.first.id > _lastId)
           _lastId = _newMessages.first.id;
         _lastId++;

@@ -61,7 +61,10 @@ class _ChatsScreenState extends State<ChatsScreen> {
       appBar: AppBar(
         title: Text("Your chats"),
       ),
-      body: _builBody(),
+      body: WillPopScope(
+        child: _builBody(),
+        onWillPop: () async => false,
+      ),
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.edit),
         onPressed: () => _mainScreenBloc.addChat(context),
