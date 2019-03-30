@@ -23,9 +23,9 @@ class AuthorizeBloc {
   Stream<AuthorizeState> getAuthorizeStreamState() => _authorizeStateStream.stream;
 
   bool isUserExist(String userId) {
-    for (User usr in _users) {
-      if (usr.userId == userId) return true;
-    }
+    for (User usr in _users) 
+      if (usr.userId == userId) 
+        return true;
     return false;
   }
 

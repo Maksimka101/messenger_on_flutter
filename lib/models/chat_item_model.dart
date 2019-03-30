@@ -1,35 +1,33 @@
+import 'package:messenger_for_nou/resources/firestore_repository.dart';
+
 class ChatItem {
   ChatItem({
     this.chatId,
     this.chatName,
     this.senderName,
     this.senderId,
-    this.chatsByDate,
     this.isPreloaded,
+    this.messagesByIdLastMessageId,
   });
 
+  int messagesByIdLastMessageId;
   bool isPreloaded = false;
   final String chatId;
   final String chatName;
   final String senderName;
   final String senderId;
-  List<String> chatsByDate = [];
 
   static const _SENDER_NAME = "senderName";
   static const _SENDER_ID = "senderId";
-  static const CHATS_BY_DATE = "chats_by_date";
+  static const LAST_SEEN_MESSAGE_ID = FirestoreRepository.MESSAGES_BY_ID_LAST_ID;
 
   static ChatItem fromMap(String key, Map<dynamic, dynamic> data) {
-    final List<String> chatsByData = [];
-    for (final date in data[CHATS_BY_DATE]) {
-      chatsByData.add(date.toString());
-    }
     return ChatItem(
       chatId: key,
       chatName: data[_SENDER_NAME],
       senderName: data[_SENDER_NAME],
       senderId: data[_SENDER_ID],
-      chatsByDate: chatsByData,
+      messagesByIdLastMessageId: data[LAST_SEEN_MESSAGE_ID],
     );
   }
 
@@ -37,7 +35,7 @@ class ChatItem {
         chatId: {
           _SENDER_NAME: senderName,
           _SENDER_ID: senderId,
-          CHATS_BY_DATE: chatsByDate,
+          LAST_SEEN_MESSAGE_ID: messagesByIdLastMessageId,
         }
       };
 
@@ -47,7 +45,7 @@ class ChatItem {
       chatName: chatElems[1],
       senderName: chatElems[2],
       senderId: chatElems[3],
-      chatsByDate: <String>[chatElems[4]],
+      messagesByIdLastMessageId: int.parse(chatElems[4]),
       isPreloaded: true,
     );
   }
@@ -57,6 +55,6 @@ class ChatItem {
         chatName,
         senderName,
         senderId,
-        chatsByDate.isNotEmpty ? chatsByDate.last : ""
+        messagesByIdLastMessageId.toString(),
       ];
 }

@@ -9,24 +9,21 @@ import 'dart:async';
 class ChatScreenBloc {
   ChatScreenBloc({
     this.chatId,
-    this.messagesByDate,
+    this.messagesByIdLastId,
   }) {
-    final date = DateTime.now();
-    _currentDate = "${date.day} ${date.month} ${date.year}";
-    _lastLoadDateIndex = messagesByDate.length - 1;
+    _idForNewMessages = messagesByIdLastId;
+    messagesByIdLastId -= 100;
     loadMoreMessages();
     _listenForLastSeenMessage();
     _listenForInput();
-    _listenForLastSeenMessageId();
+    _listenForCurrentLastSeenMessage();
     _listenForMessages();
   }
 
-
   final String chatId;
-  final List<String> messagesByDate;
-  String _currentDate;
+  int messagesByIdLastId;
+  int _idForNewMessages;
   var _previousMessages = <Message>[];
-  int _lastLoadDateIndex;
   int _lastId = 0;
   int _lastSeenMessageId;
   var _newMessages = <Message>[];
@@ -49,17 +46,12 @@ class ChatScreenBloc {
     return _lastSeenMessageIdStream.sink;
   }
 
-  void _listenForLastSeenMessageId() => _lastSeenMessageIdStream.stream
+  void _listenForCurrentLastSeenMessage() => _lastSeenMessageIdStream.stream
       .listen((int id) => FirestoreRepository.setLastSeenMessageId(chatId, id));
 
   void loadMoreMessages() {
-    if (_lastLoadDateIndex >= 0 &&
-        messagesByDate[_lastLoadDateIndex] == _currentDate) {
-      _lastLoadDateIndex--;
-    }
-    if (_lastLoadDateIndex >= 0) {
-      FirestoreRepository.getMessages(
-              chatId, messagesByDate[_lastLoadDateIndex])
+    if (messagesByIdLastId > 0) {
+      FirestoreRepository.getMessages(chatId, messagesByIdLastId.toString())
           .listen((messages) {
         if (messages.isNotEmpty) {
           _previousMessages += sortMessagesById(messages);
@@ -69,7 +61,7 @@ class ChatScreenBloc {
         _messagesStream.sink.add(_prepareMessages(
             (_newMessages + _previousMessages), _lastSeenMessageId));
       });
-      _lastLoadDateIndex--;
+      messagesByIdLastId -= 100;
     }
   }
 
@@ -81,8 +73,15 @@ class ChatScreenBloc {
       });
 
   void _listenForInput() => _inputStream.stream.listen((String messageText) {
+        bool newId = false;
+        if (_idForNewMessages < _lastId) {
+          newId = true;
+          _idForNewMessages += 100;
+          _previousMessages += _newMessages;
+          _listenForMessages();
+        }
         FirestoreRepository.sendMessage(
-          createChatForNewDay: messagesByDate.isNotEmpty ? _currentDate != messagesByDate.last : true,
+          createChatForNewId: newId,
           chatName: chatId,
           data: messageText,
           time:
@@ -90,18 +89,16 @@ class ChatScreenBloc {
               "${DateTime.now().minute}",
           senderId: User.id,
           senderName: User.name,
-          id: _lastId.toString(),
-          currentDate: _currentDate,
+          id: _lastId,
         );
         _lastId++;
-        if (messagesByDate.isEmpty || _currentDate != messagesByDate.last)
-          messagesByDate.add(_currentDate);
       });
 
   void _listenForMessages() =>
-      FirestoreRepository.getMessages(chatId, _currentDate).listen((messages) {
+      FirestoreRepository.getMessages(chatId, _idForNewMessages.toString())
+          .listen((messages) {
         _newMessages = sortMessagesById(messages);
-        print(_newMessages.length);
+        
         _messagesStream.sink.add(_prepareMessages(
             (_newMessages + _previousMessages), _lastSeenMessageId));
         if (_newMessages.isNotEmpty && _newMessages.first.id > _lastId)
@@ -109,7 +106,7 @@ class ChatScreenBloc {
         _lastId++;
       });
 
-  // add "isSeen" and "ifFirst"
+  // add "isSeen" and "isFirst"
   List<Message> _prepareMessages(List<Message> messages, int id) {
     final _messages = <Message>[];
     for (int i = 0; i < messages.length - 1; i++) {

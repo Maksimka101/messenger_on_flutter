@@ -12,7 +12,8 @@ class FirestoreRepository {
   static const _SENDER_ID = "senderId";
   static const NAME = "name";
   static const MAIL = "mail";
-  static const _MESSAGES_BY_DATE = "messages_by_date";
+  static const MESSAGES_BY_ID_LAST_ID = "messages_by_id_last_id";
+  static const MESSAGES_BY_ID = "messages_by_id";
   static const LAST_SEEN_MESSAGE_ID = "last_seen_message_id";
 
   static Stream<List<ChatItem>> getChats(String userId) => Firestore.instance
@@ -32,23 +33,24 @@ class FirestoreRepository {
       .collection(_USERS_CHATS)
       .document(chatId)
       .snapshots()
-      .map((lastSeenDoc) => lastSeenDoc.data[LAST_SEEN_MESSAGE_ID]);
+      .map((lastSeenDoc) => lastSeenDoc.data != null
+          ? lastSeenDoc.data[LAST_SEEN_MESSAGE_ID]
+          : -1);
 
   static setLastSeenMessageId(String chatId, int id) => Firestore.instance
       .collection(_USERS_CHATS)
       .document(chatId)
       .updateData({LAST_SEEN_MESSAGE_ID: id});
 
-  static Stream<List<Message>> getMessages(
-          String chatName, String dateForLoad) =>
+  static Stream<List<Message>> getMessages(String chatName, String idForLoad) =>
       Firestore.instance
           .collection(_USERS_CHATS)
           .document(chatName)
-          .collection(_MESSAGES_BY_DATE)
-          .document(dateForLoad)
+          .collection(MESSAGES_BY_ID)
+          .document(idForLoad)
           .snapshots()
           .map((snapshot) {
-        final list = List<Message>();
+        final list = <Message>[];
         if (snapshot.data != null)
           snapshot.data.forEach((key, value) {
             list.add(Message.fromMap(key, value));
@@ -61,41 +63,50 @@ class FirestoreRepository {
       String senderId,
       String data,
       String time,
-      String id,
+      int id,
       String senderName,
-      bool createChatForNewDay,
-      String currentDate}) async {
-    if (createChatForNewDay) {
+      bool createChatForNewId}) async {
+    if (createChatForNewId) {
       await Firestore.instance
           .collection(_USERS_CHATS)
           .document(chatName)
-          .collection(_MESSAGES_BY_DATE)
-          .document(currentDate)
+          .collection(MESSAGES_BY_ID)
+          .document(((id ~/ 100 + 1) * 100).toString())
           .setData({});
       Firestore.instance
           .collection(_USERS_CHATS_INFO)
           .document(senderId)
           .get()
           .then((chatInfo) {
-        final list = chatInfo.data[chatName][ChatItem.CHATS_BY_DATE]
-            .map((date) => date.toString())
-            .toList();
-        list.add(currentDate);
-        chatInfo.data[chatName][ChatItem.CHATS_BY_DATE] = list;
+        chatInfo.data[chatName][MESSAGES_BY_ID_LAST_ID] = (id ~/ 100 + 1) * 100;
         Firestore.instance
             .collection(_USERS_CHATS_INFO)
             .document(senderId)
             .updateData(chatInfo.data);
+        final user2Id = chatInfo.data[chatName][_SENDER_ID];
+        print(user2Id);
+        Firestore.instance
+            .collection(_USERS_CHATS_INFO)
+            .document(user2Id)
+            .get()
+            .then((chatinfo) {
+          chatinfo.data[chatName][MESSAGES_BY_ID_LAST_ID] =
+              (id ~/ 100 + 1) * 100;
+          Firestore.instance
+              .collection(_USERS_CHATS_INFO)
+              .document(user2Id)
+              .updateData(chatinfo.data);
+        });
       });
     }
 
     Firestore.instance
         .collection(_USERS_CHATS)
         .document(chatName)
-        .collection(_MESSAGES_BY_DATE)
-        .document(currentDate)
+        .collection(MESSAGES_BY_ID)
+        .document(((id ~/ 100 + 1) * 100).toString())
         .updateData({
-      id: {
+      id.toString(): {
         Message.SENDER: senderId,
         Message.TEXT_FIELD: data,
         Message.TIME_FIELD: time,
@@ -124,8 +135,6 @@ class FirestoreRepository {
     final chatId = sender1Id + sender2Id;
     String sender1Name;
     String sender2Name;
-    final date = DateTime.now();
-    final currentDate = "${date.day} ${date.month} ${date.year}";
 
     var data =
         await Firestore.instance.collection(_USERS).document(sender1Id).get();
@@ -139,13 +148,13 @@ class FirestoreRepository {
         userId: sender2Id,
         user2Id: sender1Id,
         user2Name: sender1Name,
-        currentDate: currentDate);
+        lastMessageId: -1);
     await _updateChatInfoForUser(
         chatId: chatId,
         userId: sender1Id,
         user2Id: sender2Id,
         user2Name: sender2Name,
-        currentDate: currentDate);
+        lastMessageId: -1);
 
     final chat = await Firestore.instance
         .collection(_USERS_CHATS)
@@ -155,9 +164,8 @@ class FirestoreRepository {
       Firestore.instance
           .collection(_USERS_CHATS)
           .document(chatId)
-          .collection(_MESSAGES_BY_DATE)
-          .document(currentDate)
-          .setData({});
+          .collection(MESSAGES_BY_ID)
+          .add({});
       Firestore.instance
           .collection(_USERS_CHATS)
           .document(chatId)
@@ -183,9 +191,6 @@ class FirestoreRepository {
           .document(userId)
           .get()
           .then((userMap) {
-        User.id = userId;
-        User.name = userMap.data[NAME];
-        User.mail = userMap.data[MAIL];
         return User(
           userId: userId,
           userName: userMap.data[NAME],
@@ -198,7 +203,7 @@ class FirestoreRepository {
       String user2Id,
       String user2Name,
       String chatId,
-      String currentDate}) {
+      int lastMessageId}) {
     Firestore.instance
         .collection(_USERS_CHATS_INFO)
         .document(userId)
@@ -206,7 +211,7 @@ class FirestoreRepository {
       chatId: {
         _SENDER_ID: user2Id,
         _SENDER_NAME: user2Name,
-        ChatItem.CHATS_BY_DATE: [currentDate],
+        MESSAGES_BY_ID_LAST_ID: lastMessageId,
       }
     });
   }

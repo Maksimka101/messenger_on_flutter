@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:messenger_for_nou/blocs/chat_screen_bloc.dart';
 import 'package:messenger_for_nou/models/message_model.dart';
@@ -21,7 +22,7 @@ class _ChatUnitState extends State<ChatUnit> {
   void initState() {
     _bloc = ChatScreenBloc(
       chatId: widget.chatItem.chatId,
-      messagesByDate: widget.chatItem.chatsByDate,
+      messagesByIdLastId: widget.chatItem.messagesByIdLastMessageId,
     );
     _streamForLastMessage = _bloc.getStreamForUi();
     _userName = widget.chatItem.senderName;
@@ -30,35 +31,41 @@ class _ChatUnitState extends State<ChatUnit> {
 
   // return dot if message wasn't seen
   Widget _getIsSeenDot(List<Message> messages) {
-    if (messages != null && messages.isNotEmpty &&
+    if (messages != null &&
+        messages.isNotEmpty &&
         messages.first.isFromUser &&
         messages.first.isSeen != null &&
         !messages.first.isSeen)
       return Text(
         "・",
       );
-    else if (messages != null && messages.isNotEmpty &&
+    else if (messages != null &&
+        messages.isNotEmpty &&
         !messages.first.isFromUser &&
         messages.first.isSeen != null &&
         !messages.first.isSeen) {
-          int count = 0;
-          for (int i = 0; i < messages.length; i++) {
-            if (!messages[i].isFromUser && messages[i].isSeen != null && !messages[i].isSeen) 
-              count++;
-            else if (i == messages.length-1) 
-              _bloc.loadMoreMessages();
-            else 
-              break;
-          }
-          return Padding(
-            padding: const EdgeInsets.only(right: 5),
-            child: CircleAvatar(
-              radius: 8,
-              backgroundColor: Colors.black45,
-              child: Text(count.toString(),
-              style: TextStyle(color: Colors.white, fontSize: 13),),
-            ),
-          );
+      int count = 0;
+      for (int i = 0; i < messages.length; i++) {
+        if (!messages[i].isFromUser &&
+            messages[i].isSeen != null &&
+            !messages[i].isSeen)
+          count++;
+        else if (i == messages.length - 1)
+          _bloc.loadMoreMessages();
+        else
+          break;
+      }
+      return Padding(
+        padding: const EdgeInsets.only(right: 5),
+        child: CircleAvatar(
+          radius: 8,
+          backgroundColor: Colors.black45,
+          child: Text(
+            count.toString(),
+            style: TextStyle(color: Colors.white, fontSize: 13),
+          ),
+        ),
+      );
     } else
       return Container();
   }
@@ -147,13 +154,13 @@ class _ChatUnitState extends State<ChatUnit> {
       ),
       onTap: () => Navigator.push(
           context,
-          MaterialPageRoute(
-              builder: (context) => MessagesScreen(
-                    companionName: widget.chatItem.senderName,
-                    chatId: widget.chatItem.chatId,
-                    messagesByDate: widget.chatItem.chatsByDate,
-                    bloc: _bloc,
-                  ))),
+          CupertinoPageRoute(
+            builder: (context) => MessagesScreen(
+                  companionName: widget.chatItem.senderName,
+                  chatId: widget.chatItem.chatId,
+                  bloc: _bloc,
+                ),
+          )),
     );
   }
 

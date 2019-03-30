@@ -30,7 +30,7 @@ class _AuthorizeScreenState extends State<AuthorizeScreen> {
   }
 
   void _registerNewUser(BuildContext context) {
-    print(_userName);
+    _formKey.currentState.validate();
     if (_userName != null && _userId != null)
       _authBloc.registerUser(context, _userName, _userId);
   }
@@ -74,84 +74,87 @@ class _AuthorizeScreenState extends State<AuthorizeScreen> {
         ),
       );
 
-  Widget _userInformationInput() => SingleChildScrollView(
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: <Widget>[
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 50),
-                child: TextFormField(
-                  textInputAction: TextInputAction.next,
-                  decoration: InputDecoration(
-                      border: OutlineInputBorder(),
-                      focusedBorder: OutlineInputBorder(),
-                      hintText: "Enter your name here",
-                      prefixIcon: Icon(
-                        Icons.person,
-                        color: Colors.black54,
-                      )),
-                  validator: (String name) {
-                    if (name.length < 3) return "Too short name";
-                    if (name.length > 20)
-                      return "Too long name";
-                    else
-                      _userName = name;
-                  },
-                  onFieldSubmitted: (_) {
-                    FocusScope.of(context).requestFocus(_idFocus);
-                  },
-                ),
+  Widget _userInformationInput() => Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: <Widget>[
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 50),
+              child: TextFormField(
+                textInputAction: TextInputAction.next,
+                decoration: InputDecoration(
+                    border: OutlineInputBorder(),
+                    focusedBorder: OutlineInputBorder(),
+                    hintText: "Enter your name here",
+                    prefixIcon: Icon(
+                      Icons.person,
+                      color: Colors.black54,
+                    )),
+                validator: (String name) {
+                  if (name.length < 3) return "Too short name";
+                  else if (name.length > 20)
+                    return "Too long name";
+                  else if (name.split(" ").length > 2) 
+                    return "Name can consist of only two words";
+                  else
+                    _userName = name;
+                },
+                onFieldSubmitted: (_) {
+                  FocusScope.of(context).requestFocus(_idFocus);
+                },
               ),
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 50, vertical: 40),
-                child: TextFormField(
-                  textInputAction: TextInputAction.done,
-                  decoration: InputDecoration(
-                      border: OutlineInputBorder(),
-                      focusedBorder: OutlineInputBorder(),
-                      alignLabelWithHint: false,
-                      hintText: "Enter your id",
-                      prefixIcon: Icon(
-                        Icons.local_offer,
-                        color: Colors.black54,
-                      )),
-                  validator: (String id) {
-                    if (id.length < 5)
-                      return "It must be longer than 5 characters";
-                    else if (id.contains("."))
-                      return "It mustn't contains dots";
-                    else if (id.length > 16)
-                      return "Too long id";
-                    else if (id.contains(" "))
-                      return "Id mustn't contain space";
-                    else
-                      _userId = id;
-                  },
-                  focusNode: _idFocus,
-                  onFieldSubmitted: (_) {
-                    _idFocus.unfocus();
-                    _registerNewUser(context);
-                  },
-                ),
-              ),
-              RaisedButton(
-                padding: EdgeInsets.symmetric(horizontal: 40, vertical: 10),
-                child: Text(
-                  "Sign in",
-                  style: TextStyle(color: Colors.white, fontSize: 20),
-                ),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20)),
-                onPressed: () {
-                  _formKey.currentState.validate();
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 40),
+              child: TextFormField(
+                textInputAction: TextInputAction.done,
+                decoration: InputDecoration(
+                    border: OutlineInputBorder(),
+                    focusedBorder: OutlineInputBorder(),
+                    alignLabelWithHint: false,
+                    hintText: "Enter your id",
+                    prefixIcon: Icon(
+                      Icons.local_offer,
+                      color: Colors.black54,
+                    )),
+                validator: (String id) {
+                  if (id.length < 5)
+                    return "It must be longer than 5 characters";
+                  else if (id.contains("."))
+                    return "It mustn't contains dots";
+                  else if (id.length > 16)
+                    return "Too long id";
+                  else if (id.contains(" "))
+                    return "Id mustn't contain space";
+                  else if (_authBloc.isUserExist(id))
+                    return "User with this id already exist";
+                  else
+                    _userId = id;
+                },
+                focusNode: _idFocus,
+                onEditingComplete: () {
+                  _registerNewUser(context);
+                },
+                onFieldSubmitted: (_) {
+                  _idFocus.unfocus();
                   _registerNewUser(context);
                 },
               ),
-            ],
-          ),
+            ),
+            RaisedButton(
+              padding: EdgeInsets.symmetric(horizontal: 40, vertical: 10),
+              child: Text(
+                "Sign in",
+                style: TextStyle(color: Colors.white, fontSize: 20),
+              ),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20)),
+              onPressed: () {
+                _registerNewUser(context);
+              },
+            ),
+          ],
         ),
       );
 
@@ -163,22 +166,25 @@ class _AuthorizeScreenState extends State<AuthorizeScreen> {
         title: Text("Sign in"),
         centerTitle: true,
       ),
-      body: Center(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: <Widget>[
-            _appLogo(),
-            StreamBuilder<AuthorizeState>(
-              stream: _authStateStream,
-              initialData: AuthorizeState.signInWithGoogle,
-              builder: (context, state) {
-                if (state.data == AuthorizeState.signInWithGoogle)
-                  return _signInWithGoogle();
-                else if (state.data == AuthorizeState.userInformationInput)
-                  return _userInformationInput();
-              },
-            ),
-          ],
+      body: SingleChildScrollView(
+        scrollDirection: Axis.vertical,
+        child: Center(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: <Widget>[
+              _appLogo(),
+              StreamBuilder<AuthorizeState>(
+                stream: _authStateStream,
+                initialData: AuthorizeState.signInWithGoogle,
+                builder: (context, state) {
+                  if (state.data == AuthorizeState.signInWithGoogle)
+                    return _signInWithGoogle();
+                  else if (state.data == AuthorizeState.userInformationInput)
+                    return _userInformationInput();
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );

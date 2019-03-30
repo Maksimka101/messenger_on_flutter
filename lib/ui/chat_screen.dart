@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:flutter/material.dart';
 import 'package:messenger_for_nou/blocs/chat_screen_bloc.dart';
 import 'package:messenger_for_nou/models/message_model.dart';
@@ -9,13 +8,11 @@ class MessagesScreen extends StatelessWidget {
   MessagesScreen(
       {@required this.companionName,
       @required this.chatId,
-      @required this.messagesByDate,
-      this.bloc});
+      @required this.bloc});
 
   final ChatScreenBloc bloc;
   final String companionName;
   final String chatId;
-  final List<String> messagesByDate;
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +44,6 @@ class MessagesScreen extends StatelessWidget {
       body: ChatBody(
         companionName: companionName,
         chatName: chatId,
-        messagesByDate: messagesByDate,
         bloc: bloc,
       ),
     );
@@ -58,11 +54,9 @@ class ChatBody extends StatefulWidget {
   ChatBody(
       {@required this.companionName,
       @required this.chatName,
-      @required this.messagesByDate,
       this.bloc});
 
   final ChatScreenBloc bloc;
-  final List<String> messagesByDate;
   final String companionName;
   final String chatName;
   @override
@@ -80,13 +74,7 @@ class _ChatBodyState extends State<ChatBody> {
 
   @override
   void initState() {
-    if (widget.bloc == null)
-      _bloc = ChatScreenBloc(
-        messagesByDate: widget.messagesByDate,
-        chatId: widget.chatName,
-      );
-    else 
-      _bloc =widget.bloc;
+    _bloc = widget.bloc;
     _uiBuildStream = _bloc.getStreamForUi();
     _inputStream = _bloc.getInputStream();
     _lastSeenMessageIdStream = _bloc.getLastSeenMessageId();
@@ -140,7 +128,7 @@ class _ChatBodyState extends State<ChatBody> {
         child: StreamBuilder<List<Message>>(
           stream: _uiBuildStream,
           builder: (context, messagesDoc) {
-            if (messagesDoc.data != null && messagesDoc.data.isNotEmpty) {
+            if (messagesDoc.data != null && messagesDoc.hasData) {
               return ListView.builder(
                 reverse: true,
                 controller: _listViewController,
@@ -175,11 +163,5 @@ class _ChatBodyState extends State<ChatBody> {
         _inputMessageField(),
       ],
     );
-  }
-
-  @override
-  void dispose() {
-    _bloc.dispose();
-    super.dispose();
   }
 }
