@@ -1,10 +1,7 @@
 import 'dart:async';
-
-import 'package:flutter/material.dart';
 import 'package:messenger_for_nou/models/chat_item_model.dart';
 import 'package:messenger_for_nou/models/user_model.dart';
 import 'package:messenger_for_nou/resources/firestore_repository.dart';
-import 'package:messenger_for_nou/ui/add_chat_popup_screen.dart';
 import 'package:rxdart/rxdart.dart';
 
 class MainScreenBloc {
@@ -22,15 +19,9 @@ class MainScreenBloc {
 
   _loadChatItems() {
     FirestoreRepository.getChats(User.id).listen((chatItems) {
-      print(chatItems.length);
       _chatItemsStream.sink.add(chatItems);
     });
   }
-
-  addChat(BuildContext context) => Navigator.push(
-      context,
-      PageRouteBuilder(
-          opaque: false, pageBuilder: (context, _, __) => AddChatScreen()));
 
   dispose() {
     _chatItemsStream.close();

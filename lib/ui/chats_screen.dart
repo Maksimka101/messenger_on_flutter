@@ -1,7 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:messenger_for_nou/blocs/main_screen_bloc.dart';
+import 'package:messenger_for_nou/blocs/chats_screen_bloc.dart';
 import 'package:messenger_for_nou/models/chat_item_model.dart';
+import 'package:messenger_for_nou/ui/add_new_chat.dart';
 import 'package:messenger_for_nou/ui/chat_item.dart';
 import 'package:messenger_for_nou/utils/cache.dart';
 
@@ -27,7 +28,7 @@ class _ChatsScreenState extends State<ChatsScreen> {
                       Cache.addChat(data.data[id]);
                       return Column(
                         children: <Widget>[
-                          ChatUnit(
+                          new ChatUnit(
                             chatItem: data.data[id],
                           ),
                           Divider(
@@ -67,7 +68,7 @@ class _ChatsScreenState extends State<ChatsScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.edit),
-        onPressed: () => _mainScreenBloc.addChat(context),
+        onPressed: () => AddNewChat.createBottomSheet(context),
       ),
     );
   }

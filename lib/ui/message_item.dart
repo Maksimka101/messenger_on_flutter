@@ -8,7 +8,8 @@ class MessageItem extends StatelessWidget {
       @required this.messageText,
       @required this.isFromUser,
       this.isSeen,
-      this.isFirst}) {
+      Key key,
+      this.isFirst}) : super(key: key) {
     if (isFirst != null && isFirst) {
       if (!isFromUser) {
         borderRadius.add(5);
@@ -103,12 +104,13 @@ class MessageItem extends StatelessWidget {
         ]);
   }
 
-  static MessageItem fromMessage(Message message) => MessageItem(
+  static MessageItem fromMessage(Message message, {Key addKey}) => MessageItem(
         isFromUser: message.isFromUser,
         sendTime: message.sendTime,
         messageText: message.messageText,
         senderName: message.senderName,
         isSeen: message.isFromUser ? message.isSeen : true, 
         isFirst: message.isFirst,
+        key: addKey != null ? addKey : Key(null),
       );
 }

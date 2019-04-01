@@ -15,8 +15,10 @@ class Message {
     this.senderName,
     this.isFirst,
     this.isSeen,
+    this.documentId,
   });
 
+  final String documentId;
   bool isSeen = true;
   final int id;
   bool isFirst;
@@ -32,6 +34,7 @@ class Message {
         messageText: value[TEXT_FIELD],
         isFromUser: User.id == value[SENDER],
         senderName: value[SENDER_NAME],
+        documentId: value["doc_id"],
       );
 
   Map<String, Map<String, String>> toMap() => {
@@ -40,6 +43,7 @@ class Message {
           TIME_FIELD: sendTime,
           SENDER: senderId,
           SENDER_NAME: senderName,
+          "doc_id": documentId,
         }
       };
 }

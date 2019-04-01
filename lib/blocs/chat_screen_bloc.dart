@@ -8,6 +8,7 @@ import 'dart:async';
 
 class ChatScreenBloc {
   ChatScreenBloc({
+    this.chatName,
     this.chatId,
     this.messagesByIdLastId,
   }) {
@@ -20,7 +21,10 @@ class ChatScreenBloc {
     _listenForMessages();
   }
 
+  final _selectedMessages = <int>{};
+  final _dataForSelectedMessages = <Map<String, String>>{};
   final String chatId;
+  final String chatName;
   int messagesByIdLastId;
   int _idForNewMessages;
   var _previousMessages = <Message>[];
@@ -46,8 +50,41 @@ class ChatScreenBloc {
     return _lastSeenMessageIdStream.sink;
   }
 
+  final _selectedMessagesStream = PublishSubject<Set<int>>();
+
+  Stream<Set<int>> get selectedMessagesStream => _selectedMessagesStream.stream;
+
+  void selectMessage(int messageId, String documentId) async {
+    _selectedMessages.add(messageId);
+    _dataForSelectedMessages.add({
+      "message": messageId.toString(),
+      "document": documentId,
+    });
+    _selectedMessagesStream.sink.add(_selectedMessages);
+  }
+
+  void unselectMessage(int messageId, String documentId) async {
+    _selectedMessages.remove(messageId);
+    _dataForSelectedMessages.remove({
+      "message": messageId.toString(),
+      "document": documentId,
+    });
+    _selectedMessagesStream.sink.add(_selectedMessages);
+  }
+
   void _listenForCurrentLastSeenMessage() => _lastSeenMessageIdStream.stream
       .listen((int id) => FirestoreRepository.setLastSeenMessageId(chatId, id));
+
+  void deleteSelectedMessages() async {
+    if (_dataForSelectedMessages != null)
+      _dataForSelectedMessages.forEach((msg) {
+        FirestoreRepository.deleteMessage(
+            chatId, msg["document"], msg["message"]);
+      });
+    _dataForSelectedMessages.clear();
+    _selectedMessages.clear();
+    _selectedMessagesStream.sink.add(null);
+  }
 
   void loadMoreMessages() {
     if (messagesByIdLastId > 0) {
@@ -98,7 +135,6 @@ class ChatScreenBloc {
       FirestoreRepository.getMessages(chatId, _idForNewMessages.toString())
           .listen((messages) {
         _newMessages = sortMessagesById(messages);
-        
         _messagesStream.sink.add(_prepareMessages(
             (_newMessages + _previousMessages), _lastSeenMessageId));
         if (_newMessages.isNotEmpty && _newMessages.first.id > _lastId)
@@ -109,11 +145,16 @@ class ChatScreenBloc {
   // add "isSeen" and "isFirst"
   List<Message> _prepareMessages(List<Message> messages, int id) {
     final _messages = <Message>[];
+    messages.add(null);
     for (int i = 0; i < messages.length - 1; i++) {
       if (id != null)
         messages[i].isSeen = messages[i].id <= id;
       else
         messages[i].isSeen = true;
+      if (messages[i + 1] != null &&
+          ((messages[i].isFromUser && !messages[i + 1].isFromUser) ||
+              (!messages[i].isFromUser && messages[i + 1].isFromUser)))
+        messages[i].isFirst = true;
       _messages.add(messages[i]);
     }
     return _messages;
@@ -121,6 +162,7 @@ class ChatScreenBloc {
 
   dispose() {
     _lastSeenMessageIdStream.close();
+    _selectedMessagesStream.close();
     _messagesStream.close();
     _inputStream.close();
   }

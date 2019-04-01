@@ -11,21 +11,30 @@ class ChatUnit extends StatefulWidget {
 
   @override
   _ChatUnitState createState() => _ChatUnitState();
+  
 }
 
 class _ChatUnitState extends State<ChatUnit> {
+
   ChatScreenBloc _bloc;
   Stream<List<Message>> _streamForLastMessage;
   String _userName;
 
-  @override
-  void initState() {
+
+  _initState() {
     _bloc = ChatScreenBloc(
+      chatName: _userName,
       chatId: widget.chatItem.chatId,
       messagesByIdLastId: widget.chatItem.messagesByIdLastMessageId,
+
     );
     _streamForLastMessage = _bloc.getStreamForUi();
     _userName = widget.chatItem.senderName;
+  }
+
+  @override
+  void initState() {
+    _initState();
     super.initState();
   }
 
@@ -131,6 +140,7 @@ class _ChatUnitState extends State<ChatUnit> {
 
   @override
   Widget build(BuildContext context) {
+    _initState();
     return InkWell(
       splashColor: Colors.black,
       child: Row(
@@ -156,8 +166,6 @@ class _ChatUnitState extends State<ChatUnit> {
           context,
           CupertinoPageRoute(
             builder: (context) => MessagesScreen(
-                  companionName: widget.chatItem.senderName,
-                  chatId: widget.chatItem.chatId,
                   bloc: _bloc,
                 ),
           )),

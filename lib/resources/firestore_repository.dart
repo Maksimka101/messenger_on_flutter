@@ -29,6 +29,15 @@ class FirestoreRepository {
         return list;
       });
 
+  static void deleteMessage(
+          String chatId, String messageDocId, String messageId) =>
+      Firestore.instance
+      .collection(_USERS_CHATS)
+      .document(chatId)
+      .collection(MESSAGES_BY_ID)
+      .document(messageDocId)
+      .updateData({messageId: FieldValue.delete()});
+
   static Stream<int> getLastSeenMessageId(String chatId) => Firestore.instance
       .collection(_USERS_CHATS)
       .document(chatId)
@@ -53,6 +62,7 @@ class FirestoreRepository {
         final list = <Message>[];
         if (snapshot.data != null)
           snapshot.data.forEach((key, value) {
+            value["doc_id"] = idForLoad;
             list.add(Message.fromMap(key, value));
           });
         return list;
@@ -84,7 +94,6 @@ class FirestoreRepository {
             .document(senderId)
             .updateData(chatInfo.data);
         final user2Id = chatInfo.data[chatName][_SENDER_ID];
-        print(user2Id);
         Firestore.instance
             .collection(_USERS_CHATS_INFO)
             .document(user2Id)
@@ -116,10 +125,12 @@ class FirestoreRepository {
   }
 
   static addNewUser(String userId, String userName, String userMail) async {
-    final user =
-        await Firestore.instance.collection(_USERS).document(userId).get();
+    final user = await Firestore.instance.collection(_USERS).getDocuments();
 
-    if (user.data == null) {
+    if (!user.documents
+        .map((doc) => doc.documentID)
+        .toList()
+        .contains(userId)) {
       Firestore.instance
           .collection(_USERS)
           .document(userId)
@@ -148,13 +159,13 @@ class FirestoreRepository {
         userId: sender2Id,
         user2Id: sender1Id,
         user2Name: sender1Name,
-        lastMessageId: -1);
+        lastMessageId: 0);
     await _updateChatInfoForUser(
         chatId: chatId,
         userId: sender1Id,
         user2Id: sender2Id,
         user2Name: sender2Name,
-        lastMessageId: -1);
+        lastMessageId: 0);
 
     final chat = await Firestore.instance
         .collection(_USERS_CHATS)

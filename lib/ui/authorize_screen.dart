@@ -113,13 +113,13 @@ class _AuthorizeScreenState extends State<AuthorizeScreen> {
                     border: OutlineInputBorder(),
                     focusedBorder: OutlineInputBorder(),
                     alignLabelWithHint: false,
-                    hintText: "Enter your id",
+                    hintText: "Enter your id to find you",
                     prefixIcon: Icon(
                       Icons.local_offer,
                       color: Colors.black54,
                     )),
                 validator: (String id) {
-                  if (id.length < 5)
+                  if (id.length < 4)
                     return "It must be longer than 5 characters";
                   else if (id.contains("."))
                     return "It mustn't contains dots";
@@ -138,7 +138,6 @@ class _AuthorizeScreenState extends State<AuthorizeScreen> {
                 },
                 onFieldSubmitted: (_) {
                   _idFocus.unfocus();
-                  _registerNewUser(context);
                 },
               ),
             ),
