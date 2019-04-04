@@ -1,4 +1,5 @@
 import 'dart:core';
+import 'package:flutter/services.dart';
 import 'package:messenger_for_nou/models/message_model.dart';
 import 'package:messenger_for_nou/models/user_model.dart';
 import 'package:messenger_for_nou/resources/firestore_repository.dart';
@@ -22,7 +23,7 @@ class ChatScreenBloc {
   }
 
   final _selectedMessages = <int>{};
-  final _dataForSelectedMessages = <Map<String, String>>{};
+  final _dataForSelectedMessages = <int, Message>{};
   final String chatId;
   final String chatName;
   int messagesByIdLastId;
@@ -50,53 +51,66 @@ class ChatScreenBloc {
     return _lastSeenMessageIdStream.sink;
   }
 
+  // work with selected messages
   final _selectedMessagesStream = PublishSubject<Set<int>>();
 
   Stream<Set<int>> get selectedMessagesStream => _selectedMessagesStream.stream;
 
-  void selectMessage(int messageId, String documentId) async {
+  void selectMessage(int messageId, Message message) async {
     _selectedMessages.add(messageId);
-    _dataForSelectedMessages.add({
-      "message": messageId.toString(),
-      "document": documentId,
-    });
+    _dataForSelectedMessages[messageId] = message;
     _selectedMessagesStream.sink.add(_selectedMessages);
   }
 
-  void unselectMessage(int messageId, String documentId) async {
+  void unselectMessage(int messageId) async {
     _selectedMessages.remove(messageId);
-    _dataForSelectedMessages.remove({
-      "message": messageId.toString(),
-      "document": documentId,
-    });
+    _dataForSelectedMessages.remove(messageId);
     _selectedMessagesStream.sink.add(_selectedMessages);
   }
 
   void _listenForCurrentLastSeenMessage() => _lastSeenMessageIdStream.stream
       .listen((int id) => FirestoreRepository.setLastSeenMessageId(chatId, id));
 
-  void deleteSelectedMessages() async {
+  void deleteSelectedMessages() {
     if (_dataForSelectedMessages != null)
-      _dataForSelectedMessages.forEach((msg) {
+      _dataForSelectedMessages.forEach((key, msg) {
         FirestoreRepository.deleteMessage(
-            chatId, msg["document"], msg["message"]);
+            chatId, msg.documentId, key.toString());
       });
+    _previousMessages
+        .removeWhere((message) => _selectedMessages.contains(message.id));
+    _messagesStream.sink.add(_prepareMessages(
+            (_newMessages + _previousMessages), _lastSeenMessageId));
     _dataForSelectedMessages.clear();
     _selectedMessages.clear();
     _selectedMessagesStream.sink.add(null);
   }
+
+  void copySelectedMessages() {
+    var clipboardText = "";
+    if (_dataForSelectedMessages != null)
+      for (final msg in _dataForSelectedMessages.values)
+        clipboardText += msg.messageText + "\n";
+    Clipboard.setData(ClipboardData(text: clipboardText.trimRight()));
+    _dataForSelectedMessages.clear();
+    _selectedMessages.clear();
+    _selectedMessagesStream.sink.add(null);
+  }
+  // /work with selected messages
 
   void loadMoreMessages() {
     if (messagesByIdLastId > 0) {
       FirestoreRepository.getMessages(chatId, messagesByIdLastId.toString())
           .listen((messages) {
         if (messages.isNotEmpty) {
+          if (_previousMessages.isNotEmpty && _previousMessages.last.id < messages.first.id)
+          return;
           _previousMessages += sortMessagesById(messages);
           if (_previousMessages.first.id > _lastId)
             _lastId = _previousMessages.first.id + 1;
-        }
         _messagesStream.sink.add(_prepareMessages(
             (_newMessages + _previousMessages), _lastSeenMessageId));
+        }
       });
       messagesByIdLastId -= 100;
     }
@@ -110,6 +124,16 @@ class ChatScreenBloc {
       });
 
   void _listenForInput() => _inputStream.stream.listen((String messageText) {
+        final msg = Message(
+          sendTime:
+              "${DateTime.now().hour}:${DateTime.now().minute < 10 ? "0" : ""}"
+              "${DateTime.now().minute}",
+          id: _lastId,
+          messageText: messageText,
+          senderName: User.name,
+          senderId: User.id,
+          isFromUser: true,
+        );
         bool newId = false;
         if (_idForNewMessages < _lastId) {
           newId = true;
@@ -117,13 +141,14 @@ class ChatScreenBloc {
           _previousMessages += _newMessages;
           _listenForMessages();
         }
+        _newMessages.insert(0, msg);
+        _messagesStream.add(_prepareMessages(
+            _newMessages + _previousMessages, _lastSeenMessageId));
         FirestoreRepository.sendMessage(
           createChatForNewId: newId,
           chatName: chatId,
           data: messageText,
-          time:
-              "${DateTime.now().hour}:${DateTime.now().minute < 10 ? "0" : ""}"
-              "${DateTime.now().minute}",
+          time: msg.sendTime,
           senderId: User.id,
           senderName: User.name,
           id: _lastId,
@@ -134,6 +159,10 @@ class ChatScreenBloc {
   void _listenForMessages() =>
       FirestoreRepository.getMessages(chatId, _idForNewMessages.toString())
           .listen((messages) {
+        // Если удалили что то из _previosMessages, то данные из него придут
+        // и попадут в _newMessages. if ниже не дает этому случиться, вроде.
+        print(messages.first.id.toString() + " " + (_idForNewMessages - 100).toString());
+        if (messages.first.id < _idForNewMessages - 100) return;
         _newMessages = sortMessagesById(messages);
         _messagesStream.sink.add(_prepareMessages(
             (_newMessages + _previousMessages), _lastSeenMessageId));

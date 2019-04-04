@@ -30,6 +30,7 @@ class _ChatsScreenState extends State<ChatsScreen> {
                         children: <Widget>[
                           new ChatUnit(
                             chatItem: data.data[id],
+                            key: Key(data.data[id].chatId),
                           ),
                           Divider(
                             height: 0,

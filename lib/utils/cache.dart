@@ -31,15 +31,7 @@ class Cache {
       _sp.setStringList(chatItem.chatId, chatItem.toList());
     }
   }
-
-  /*
-  updateChat(ChatItem chatItem, String lastMessage, String lastTime) async {
-    final chatsId = _sp.getStringList(CHATS_ID_LIST_NAME);
-    if (chatsId != null)
-      _sp.setStringList(chatItem.chatId, chatItem.toList(lastMessage: lastMessage, lastTime: lastTime));
-  }
-  */
-
+  
   static delChat(String id) async {
     final _sp = await SharedPreferences.getInstance();
     _sp.remove(id);

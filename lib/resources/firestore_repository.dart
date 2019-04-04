@@ -30,7 +30,7 @@ class FirestoreRepository {
       });
 
   static void deleteMessage(
-          String chatId, String messageDocId, String messageId) =>
+          String chatId, String messageDocId, String messageId) async =>
       Firestore.instance
       .collection(_USERS_CHATS)
       .document(chatId)

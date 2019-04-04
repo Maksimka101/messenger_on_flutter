@@ -72,12 +72,19 @@ class _ChatAppBarState extends State<ChatAppBar> {
               mainAxisAlignment: MainAxisAlignment.end,
               children: <Widget>[
                 IconButton(
+                  icon: Icon(Icons.content_copy),
+                  onPressed: () => widget.bloc.copySelectedMessages(),
+                ),
+                IconButton(
                   icon: Icon(Icons.delete_forever),
                   onPressed: () {
                     widget.bloc.deleteSelectedMessages();
                   },
                 ),
-                Text(snapshot.data.length.toString())
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 5),
+                  child: Text(snapshot.data.length.toString()),
+                ),
               ],
             );
         });
@@ -178,12 +185,11 @@ class _ChatBodyState extends State<ChatBody> {
                         }
                         if (messagesDoc.data.length - 10 < id)
                           _bloc.loadMoreMessages();
-                        if (selectedMessages.hasData &&
+                        if (selectedMessages.data != null &&
                             selectedMessages.data.contains(currentMessage.id))
                           return GestureDetector(
                             onTap: () {
-                              _bloc.unselectMessage(
-                                  currentMessage.id, currentMessage.documentId);
+                              _bloc.unselectMessage(currentMessage.id);
                             },
                             child: Container(
                               color: Colors.black38,
@@ -194,17 +200,19 @@ class _ChatBodyState extends State<ChatBody> {
                         else
                           return GestureDetector(
                             onTap: () {
-                              if (selectMode)
-                                _bloc.selectMessage(currentMessage.id,
-                                    currentMessage.documentId);
+                              if (selectMode) {
+                                _bloc.selectMessage(
+                                    currentMessage.id, currentMessage);
+                              }
                             },
                             onLongPress: () {
-                              if (!selectMode)
-                                _bloc.selectMessage(currentMessage.id,
-                                    currentMessage.documentId);
+                              if (!selectMode) {
+                                _bloc.selectMessage(
+                                    currentMessage.id, currentMessage);
+                              }
                             },
                             child: Container(
-                              color: Colors.white,
+                              color: Colors.white10,
                               child: MessageItem.fromMessage(currentMessage,
                                   addKey: Key(id.toString())),
                             ),

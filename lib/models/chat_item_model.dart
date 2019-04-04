@@ -10,7 +10,7 @@ class ChatItem {
     this.messagesByIdLastMessageId,
   });
 
-  int messagesByIdLastMessageId;
+  int messagesByIdLastMessageId = 0;
   bool isPreloaded = false;
   final String chatId;
   final String chatName;

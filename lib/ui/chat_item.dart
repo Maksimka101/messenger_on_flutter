@@ -6,35 +6,33 @@ import 'package:messenger_for_nou/ui/chat_screen.dart';
 import 'package:messenger_for_nou/models/chat_item_model.dart';
 
 class ChatUnit extends StatefulWidget {
-  ChatUnit({@required this.chatItem});
+  ChatUnit({
+    @required this.chatItem,
+    Key key,
+  }) : super(key: key);
   final ChatItem chatItem;
 
   @override
-  _ChatUnitState createState() => _ChatUnitState();
-  
+  _ChatUnitState createState() {
+    return _ChatUnitState(ChatScreenBloc(
+      chatName: chatItem.senderName,
+      chatId: chatItem.chatId,
+      messagesByIdLastId: chatItem.messagesByIdLastMessageId,
+    ));
+  }
 }
 
 class _ChatUnitState extends State<ChatUnit> {
+  _ChatUnitState(this.bloc);
 
-  ChatScreenBloc _bloc;
+  ChatScreenBloc bloc;
   Stream<List<Message>> _streamForLastMessage;
   String _userName;
 
-
-  _initState() {
-    _bloc = ChatScreenBloc(
-      chatName: _userName,
-      chatId: widget.chatItem.chatId,
-      messagesByIdLastId: widget.chatItem.messagesByIdLastMessageId,
-
-    );
-    _streamForLastMessage = _bloc.getStreamForUi();
-    _userName = widget.chatItem.senderName;
-  }
-
   @override
   void initState() {
-    _initState();
+    _userName = widget.chatItem.senderName;
+    _streamForLastMessage = bloc.getStreamForUi();
     super.initState();
   }
 
@@ -60,7 +58,7 @@ class _ChatUnitState extends State<ChatUnit> {
             !messages[i].isSeen)
           count++;
         else if (i == messages.length - 1)
-          _bloc.loadMoreMessages();
+          bloc.loadMoreMessages();
         else
           break;
       }
@@ -140,7 +138,7 @@ class _ChatUnitState extends State<ChatUnit> {
 
   @override
   Widget build(BuildContext context) {
-    _initState();
+    // _initState();
     return InkWell(
       splashColor: Colors.black,
       child: Row(
@@ -166,7 +164,7 @@ class _ChatUnitState extends State<ChatUnit> {
           context,
           CupertinoPageRoute(
             builder: (context) => MessagesScreen(
-                  bloc: _bloc,
+                  bloc: bloc,
                 ),
           )),
     );
@@ -174,7 +172,7 @@ class _ChatUnitState extends State<ChatUnit> {
 
   @override
   void dispose() {
-    _bloc.dispose();
+    bloc.dispose();
     super.dispose();
   }
 }
