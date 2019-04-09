@@ -1,5 +1,6 @@
 import 'dart:core';
 import 'package:flutter/services.dart';
+import 'package:messenger_for_nou/blocs/notification_bloc.dart';
 import 'package:messenger_for_nou/models/message_model.dart';
 import 'package:messenger_for_nou/models/user_model.dart';
 import 'package:messenger_for_nou/resources/firestore_repository.dart';
@@ -80,7 +81,7 @@ class ChatScreenBloc {
     _previousMessages
         .removeWhere((message) => _selectedMessages.contains(message.id));
     _messagesStream.sink.add(_prepareMessages(
-            (_newMessages + _previousMessages), _lastSeenMessageId));
+        (_newMessages + _previousMessages), _lastSeenMessageId));
     _dataForSelectedMessages.clear();
     _selectedMessages.clear();
     _selectedMessagesStream.sink.add(null);
@@ -98,18 +99,37 @@ class ChatScreenBloc {
   }
   // /work with selected messages
 
+/*
+  void _sendMessagesNotification() {
+    print("send");
+    final unreadMessages = <Message>[];
+    for (final message in (_newMessages + _previousMessages)) {
+      if (!message.isSeen) if (!message.isFromUser)
+        unreadMessages.add(message);
+      else
+        break;
+    }
+    if (unreadMessages.isNotEmpty)
+      Notifications.sendGoupMessage(
+          chatId: chatId,
+          senderName: unreadMessages.first.senderName,
+          senderId: unreadMessages.first.senderId,
+          messages: unreadMessages);
+  }
+*/
+
   void loadMoreMessages() {
     if (messagesByIdLastId > 0) {
       FirestoreRepository.getMessages(chatId, messagesByIdLastId.toString())
           .listen((messages) {
         if (messages.isNotEmpty) {
-          if (_previousMessages.isNotEmpty && _previousMessages.last.id < messages.first.id)
-          return;
+          if (_previousMessages.isNotEmpty &&
+              _previousMessages.last.id < messages.first.id) return;
           _previousMessages += sortMessagesById(messages);
           if (_previousMessages.first.id > _lastId)
             _lastId = _previousMessages.first.id + 1;
-        _messagesStream.sink.add(_prepareMessages(
-            (_newMessages + _previousMessages), _lastSeenMessageId));
+          _messagesStream.sink.add(_prepareMessages(
+              (_newMessages + _previousMessages), _lastSeenMessageId));
         }
       });
       messagesByIdLastId -= 100;
@@ -119,6 +139,7 @@ class ChatScreenBloc {
   void _listenForLastSeenMessage() =>
       FirestoreRepository.getLastSeenMessageId(chatId).listen((int lastSennId) {
         _lastSeenMessageId = lastSennId;
+
         _messagesStream.sink.add(
             _prepareMessages(_newMessages + _previousMessages, lastSennId));
       });
@@ -134,7 +155,7 @@ class ChatScreenBloc {
           senderId: User.id,
           isFromUser: true,
         );
-        bool newId = false;
+        var newId = false;
         if (_idForNewMessages < _lastId) {
           newId = true;
           _idForNewMessages += 100;
@@ -161,8 +182,9 @@ class ChatScreenBloc {
           .listen((messages) {
         // Если удалили что то из _previosMessages, то данные из него придут
         // и попадут в _newMessages. if ниже не дает этому случиться, вроде.
-        print(messages.first.id.toString() + " " + (_idForNewMessages - 100).toString());
-        if (messages.first.id < _idForNewMessages - 100) return;
+        if (messages != null &&
+            messages.isNotEmpty &&
+            messages.first.id < _idForNewMessages - 100) return;
         _newMessages = sortMessagesById(messages);
         _messagesStream.sink.add(_prepareMessages(
             (_newMessages + _previousMessages), _lastSeenMessageId));

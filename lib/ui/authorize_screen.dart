@@ -54,8 +54,8 @@ class _AuthorizeScreenState extends State<AuthorizeScreen> {
           maxRadius: 80,
           backgroundColor: Colors.black,
           child: Text(
-            "My app logo",
-            style: TextStyle(color: Colors.white),
+            "Unicon",
+            style: TextStyle(color: Colors.white, fontSize: 35),
           ),
         ),
       );

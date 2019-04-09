@@ -32,11 +32,11 @@ class FirestoreRepository {
   static void deleteMessage(
           String chatId, String messageDocId, String messageId) async =>
       Firestore.instance
-      .collection(_USERS_CHATS)
-      .document(chatId)
-      .collection(MESSAGES_BY_ID)
-      .document(messageDocId)
-      .updateData({messageId: FieldValue.delete()});
+          .collection(_USERS_CHATS)
+          .document(chatId)
+          .collection(MESSAGES_BY_ID)
+          .document(messageDocId)
+          .updateData({messageId: FieldValue.delete()});
 
   static Stream<int> getLastSeenMessageId(String chatId) => Firestore.instance
       .collection(_USERS_CHATS)
@@ -82,7 +82,14 @@ class FirestoreRepository {
           .document(chatName)
           .collection(MESSAGES_BY_ID)
           .document(((id ~/ 100 + 1) * 100).toString())
-          .setData({});
+          .setData({
+        id.toString(): {
+          Message.SENDER: senderId,
+          Message.TEXT_FIELD: data,
+          Message.TIME_FIELD: time,
+          Message.SENDER_NAME: senderName,
+        }
+      });
       Firestore.instance
           .collection(_USERS_CHATS_INFO)
           .document(senderId)
@@ -107,21 +114,20 @@ class FirestoreRepository {
               .updateData(chatinfo.data);
         });
       });
-    }
-
-    Firestore.instance
-        .collection(_USERS_CHATS)
-        .document(chatName)
-        .collection(MESSAGES_BY_ID)
-        .document(((id ~/ 100 + 1) * 100).toString())
-        .updateData({
-      id.toString(): {
-        Message.SENDER: senderId,
-        Message.TEXT_FIELD: data,
-        Message.TIME_FIELD: time,
-        Message.SENDER_NAME: senderName,
-      }
-    });
+    } else
+      await Firestore.instance
+          .collection(_USERS_CHATS)
+          .document(chatName)
+          .collection(MESSAGES_BY_ID)
+          .document(((id ~/ 100 + 1) * 100).toString())
+          .updateData({
+        id.toString(): {
+          Message.SENDER: senderId,
+          Message.TEXT_FIELD: data,
+          Message.TIME_FIELD: time,
+          Message.SENDER_NAME: senderName,
+        }
+      });
   }
 
   static addNewUser(String userId, String userName, String userMail) async {

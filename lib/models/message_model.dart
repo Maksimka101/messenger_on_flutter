@@ -1,4 +1,6 @@
 import 'package:messenger_for_nou/models/user_model.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart'
+    as NotificationMesg;
 
 class Message {
   static const TIME_FIELD = "time";
@@ -46,4 +48,7 @@ class Message {
           "doc_id": documentId,
         }
       };
+
+  NotificationMesg.Message toNotificationMessage() =>
+      NotificationMesg.Message(messageText, DateTime.now(), null);
 }

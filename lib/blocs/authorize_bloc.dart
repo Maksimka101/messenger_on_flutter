@@ -12,20 +12,13 @@ enum AuthorizeState {
 }
 
 class AuthorizeBloc {
-  AuthorizeBloc() {
-    FirestoreRepository.getAllUsers().then((users) {
-      _users = users;
-    });
-  }
-
   final _authorizeStateStream = PublishSubject<AuthorizeState>();
 
-  Stream<AuthorizeState> getAuthorizeStreamState() => _authorizeStateStream.stream;
+  Stream<AuthorizeState> getAuthorizeStreamState() =>
+      _authorizeStateStream.stream;
 
   bool isUserExist(String userId) {
-    for (User usr in _users) 
-      if (usr.userId == userId) 
-        return true;
+    for (User usr in _users) if (usr.userId == userId) return true;
     return false;
   }
 
@@ -53,15 +46,18 @@ class AuthorizeBloc {
     final FirebaseUser user = await _auth.signInWithCredential(credential);
 
     if (user != null) {
-      for (User usr in _users) {
-        if (usr.userMail == user.email) {
-          Authorization.authorizeUser(usr.userName, usr.userId, user.email);
-          Navigator.popAndPushNamed(context, "/main");
-          return;
+      FirestoreRepository.getAllUsers().then((users) {
+        _users = users;
+        for (User usr in _users) {
+          if (usr.userMail == user.email) {
+            Authorization.authorizeUser(usr.userName, usr.userId, user.email);
+            Navigator.popAndPushNamed(context, "/main");
+            return;
+          }
         }
-      }
-      _userMail = user.email;
-      _authorizeStateStream.sink.add(AuthorizeState.userInformationInput);
+        _userMail = user.email;
+        _authorizeStateStream.sink.add(AuthorizeState.userInformationInput);
+      });
     }
   }
 

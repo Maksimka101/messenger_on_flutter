@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:messenger_for_nou/blocs/chat_screen_bloc.dart';
 import 'package:messenger_for_nou/models/message_model.dart';
@@ -138,7 +137,6 @@ class _ChatUnitState extends State<ChatUnit> {
 
   @override
   Widget build(BuildContext context) {
-    // _initState();
     return InkWell(
       splashColor: Colors.black,
       child: Row(
@@ -162,7 +160,7 @@ class _ChatUnitState extends State<ChatUnit> {
       ),
       onTap: () => Navigator.push(
           context,
-          CupertinoPageRoute(
+          MaterialPageRoute(
             builder: (context) => MessagesScreen(
                   bloc: bloc,
                 ),
